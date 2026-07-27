@@ -61,6 +61,7 @@ body {
 .screen.active { display: block; }
 
 .icon { width: 22px; height: 22px; display: inline-block; vertical-align: middle; }
+.emoji-ic { font-size: 20px; line-height: 1; display: inline-block; }
 
 /* ---------- Tab bar ---------- */
 .tabbar {

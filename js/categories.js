@@ -2,7 +2,7 @@ const Categories = (() => {
   const ICON_CHOICES = ["food","cart","car","fuel","drink","health","clothes","phone","subscriptions","travel","home","gift","book","paw","income","sport","beauty","kids","tech","wallet","other"];
   const COLOR_CHOICES = ["#f97316","#0ea5e9","#64748b","#a16207","#d946ef","#ef4444","#14b8a6","#6366f1","#84cc16","#0891b2","#94a3b8","#22c55e","#eab308","#ec4899","#8b5cf6"];
 
-  let editing = { id: null, type: "expense", icon: "other", color: COLOR_CHOICES[0] };
+  let editing = { id: null, type: "expense", icon: "other", emoji: "", color: COLOR_CHOICES[0] };
 
   async function render() {
     const cats = await Db.getCategories();
@@ -15,7 +15,7 @@ const Categories = (() => {
     list.innerHTML = cats
       .map(
         (c) => `<button class="list-row" data-id="${c.id}">
-          <span class="row-ic" style="background:${c.color}">${icon(c.icon)}</span>
+          <span class="row-ic" style="background:${c.color}">${renderCatIcon(c.icon)}</span>
           <span style="flex:1">
             <div class="row-title">${c.name}</div>
             <div class="row-sub">${c.type === "income" ? "Дохід" : "Витрата"}</div>
@@ -36,6 +36,8 @@ const Categories = (() => {
     document.querySelectorAll("#categoryIconGrid button").forEach((btn) => {
       btn.addEventListener("click", () => {
         editing.icon = btn.dataset.iconChoice;
+        editing.emoji = "";
+        document.getElementById("categoryEmojiInput").value = "";
         renderIconGrid();
       });
     });
@@ -63,16 +65,18 @@ const Categories = (() => {
 
   function openEditor(cat) {
     if (cat) {
-      editing = { id: cat.id, type: cat.type, icon: cat.icon, color: cat.color };
+      const isEmoji = !ICONS[cat.icon];
+      editing = { id: cat.id, type: cat.type, icon: isEmoji ? "other" : cat.icon, emoji: isEmoji ? cat.icon : "", color: cat.color };
       document.getElementById("categoryModalTitle").textContent = "Редагувати категорію";
       document.getElementById("categoryNameInput").value = cat.name;
       document.getElementById("categoryDeleteBtn").style.display = "block";
     } else {
-      editing = { id: null, type: "expense", icon: "other", color: COLOR_CHOICES[0] };
+      editing = { id: null, type: "expense", icon: "other", emoji: "", color: COLOR_CHOICES[0] };
       document.getElementById("categoryModalTitle").textContent = "Нова категорія";
       document.getElementById("categoryNameInput").value = "";
       document.getElementById("categoryDeleteBtn").style.display = "none";
     }
+    document.getElementById("categoryEmojiInput").value = editing.emoji;
     renderTypeToggle();
     renderIconGrid();
     renderColorGrid();
@@ -89,10 +93,15 @@ const Categories = (() => {
       });
     });
 
+    document.getElementById("categoryEmojiInput").addEventListener("input", (e) => {
+      editing.emoji = e.target.value;
+    });
+
     document.getElementById("categorySaveBtn").addEventListener("click", async () => {
       const name = document.getElementById("categoryNameInput").value.trim();
       if (!name) { App.toast("Введіть назву"); return; }
-      const record = { id: editing.id || Db.uuid(), name, icon: editing.icon, color: editing.color, type: editing.type };
+      const iconValue = editing.emoji.trim() ? editing.emoji.trim() : editing.icon;
+      const record = { id: editing.id || Db.uuid(), name, icon: iconValue, color: editing.color, type: editing.type };
       if (editing.id) await Db.updateCategory(record);
       else await Db.addCategory(record);
       await App.refreshCategories();

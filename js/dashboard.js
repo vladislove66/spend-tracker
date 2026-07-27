@@ -27,7 +27,7 @@ const Dashboard = (() => {
         const c = catById(id);
         if (!c) return "";
         return `<div class="cat-card">
-          <span class="cat-ic" style="background:${c.color}">${icon(c.icon)}</span>
+          <span class="cat-ic" style="background:${c.color}">${renderCatIcon(c.icon)}</span>
           <div class="name">${c.name}</div>
           <div class="amt">${App.fmtMoney(v)}</div>
         </div>`;

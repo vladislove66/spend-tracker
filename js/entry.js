@@ -14,7 +14,7 @@ const Entry = (() => {
       .map((c) => {
         const active = c.id === App.state.entry.categoryId;
         return `<button class="cat-chip${active ? " active" : ""}" style="--cc:${c.color}" data-cat="${c.id}">
-          <span class="cat-ic">${icon(c.icon)}</span><span>${c.name}</span>
+          <span class="cat-ic">${renderCatIcon(c.icon)}</span><span>${c.name}</span>
         </button>`;
       })
       .join("");

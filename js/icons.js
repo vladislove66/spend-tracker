@@ -48,3 +48,10 @@ function icon(name, cls) {
   const inner = ICONS[name] || ICONS.other;
   return `<svg class="icon${cls ? " " + cls : ""}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
 }
+
+// Category icon field may hold either an SVG icon key or a literal emoji
+// typed via the iOS emoji keyboard. This renders whichever it is.
+function renderCatIcon(value) {
+  if (ICONS[value]) return icon(value);
+  return `<span class="emoji-ic">${value || "?"}</span>`;
+}
