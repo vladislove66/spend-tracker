@@ -43,6 +43,7 @@ const App = (() => {
     document.querySelectorAll(".screen").forEach((s) => s.classList.remove("active"));
     document.getElementById(`screen-${name}`).classList.add("active");
     document.querySelectorAll(".tab-btn").forEach((b) => b.classList.toggle("active", b.dataset.tab === name));
+    if (name === "entry") Entry.render();
     if (name === "dashboard") Dashboard.render();
     if (name === "categories") Categories.render();
     if (name === "stats") Stats.render();

@@ -8,7 +8,8 @@ const Entry = (() => {
   function renderCategoryRow() {
     const row = document.getElementById("categoryRow");
     const cats = categoriesForType(App.state.entry.type);
-    if (!App.state.entry.categoryId && cats.length) App.state.entry.categoryId = cats[0].id;
+    const stillExists = cats.some((c) => c.id === App.state.entry.categoryId);
+    if (!stillExists) App.state.entry.categoryId = cats.length ? cats[0].id : null;
     row.innerHTML = cats
       .map((c) => {
         const active = c.id === App.state.entry.categoryId;
