@@ -1,0 +1,225 @@
+<!doctype html>
+<html lang="uk">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
+<title>Витрати</title>
+<meta name="theme-color" content="#4f46e5" />
+<link rel="manifest" href="manifest.json" />
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
+<link rel="icon" href="icons/favicon-32.png" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Витрати" />
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+<div id="app">
+
+  <div class="toast" id="toast"></div>
+
+  <!-- ============ ENTRY ============ -->
+  <section id="screen-entry" class="screen active">
+    <div class="page-header"><h1>Витрати</h1></div>
+
+    <div class="type-toggle">
+      <button class="active expense" data-type="expense">Витрата</button>
+      <button data-type="income">Дохід</button>
+    </div>
+
+    <div class="category-row" id="categoryRow"></div>
+
+    <div class="amount-display expense" id="amountDisplay">
+      <span class="amt" id="amountValue">0</span><span class="cur" id="amountCur">UAH</span>
+    </div>
+
+    <div class="keypad" id="keypad">
+      <button data-k="1">1</button><button data-k="2">2</button><button data-k="3">3</button>
+      <button data-k="4">4</button><button data-k="5">5</button><button data-k="6">6</button>
+      <button data-k="7">7</button><button data-k="8">8</button><button data-k="9">9</button>
+      <button data-k=".">.</button><button data-k="0">0</button><button data-k="back" data-icon="chevronLeft"></button>
+    </div>
+
+    <div class="entry-actions">
+      <button class="icon-btn note-indicator" id="noteBtn" data-icon="note"></button>
+      <button class="confirm-btn expense" id="confirmBtn"><span data-icon="check"></span>Зберегти</button>
+    </div>
+  </section>
+
+  <!-- ============ DASHBOARD ============ -->
+  <section id="screen-dashboard" class="screen">
+    <div class="page-header">
+      <h1>Дашборд</h1>
+    </div>
+
+    <div class="month-picker">
+      <button id="prevMonth" data-icon="chevronLeft"></button>
+      <span id="monthLabel">Липень 2026</span>
+      <button id="nextMonth" data-icon="chevronRight"></button>
+    </div>
+
+    <div class="balance-card">
+      <div class="label">Баланс за місяць</div>
+      <div class="value" id="monthBalance">0 UAH</div>
+    </div>
+
+    <div class="card-grid" id="dashCards"></div>
+
+    <div class="section-label">По днях</div>
+    <div class="day-list" id="dayList"></div>
+  </section>
+
+  <!-- ============ CATEGORIES ============ -->
+  <section id="screen-categories" class="screen">
+    <div class="page-header"><h1>Категорії</h1></div>
+    <div class="list" id="categoriesList"></div>
+    <button class="fab" id="addCategoryBtn"><span data-icon="plus"></span>Додати категорію</button>
+  </section>
+
+  <!-- ============ STATS ============ -->
+  <section id="screen-stats" class="screen">
+    <div class="page-header"><h1>Статистика</h1></div>
+
+    <div class="month-picker">
+      <button id="statsPrevMonth" data-icon="chevronLeft"></button>
+      <span id="statsMonthLabel">Липень 2026</span>
+      <button id="statsNextMonth" data-icon="chevronRight"></button>
+    </div>
+
+    <div class="chart-card">
+      <h3>Розподіл витрат по категоріях</h3>
+      <div id="donutChart"></div>
+    </div>
+
+    <div class="chart-card">
+      <h3>Динаміка за 6 місяців</h3>
+      <div id="trendChart"></div>
+    </div>
+  </section>
+
+  <!-- ============ SETTINGS ============ -->
+  <section id="screen-settings" class="screen">
+    <div class="page-header"><h1>Налаштування</h1></div>
+
+    <div class="list" style="margin-bottom:18px">
+      <div class="list-row" style="width:auto">
+        <div class="row-ic" style="background:#0ea5e9" data-icon="wallet"></div>
+        <div style="flex:1">
+          <div class="row-title">Валюта</div>
+        </div>
+        <select id="currencySelect" class="text-input" style="width:90px;padding:8px">
+          <option value="UAH">UAH</option>
+          <option value="USD">USD</option>
+          <option value="EUR">EUR</option>
+        </select>
+      </div>
+      <div class="list-row" style="width:auto">
+        <div class="row-ic" style="background:#f59e0b" data-icon="edit"></div>
+        <div style="flex:1">
+          <div class="row-title">Початковий баланс</div>
+        </div>
+        <input id="startBalanceInput" class="text-input" style="width:100px;padding:8px" inputmode="decimal" />
+      </div>
+    </div>
+
+    <div class="section-label">Резервна копія</div>
+    <div class="list">
+      <div class="list-row" id="lastBackupRow" style="width:auto">
+        <div class="row-ic" style="background:#6366f1" data-icon="calendar"></div>
+        <div style="flex:1">
+          <div class="row-title">Останній бекап</div>
+          <div class="row-sub" id="lastBackupDate">—</div>
+        </div>
+      </div>
+      <button class="list-row" id="exportBtn">
+        <div class="row-ic" style="background:#22c55e" data-icon="download"></div>
+        <div class="row-title">Експортувати зараз</div>
+      </button>
+      <button class="list-row" id="importBtn">
+        <div class="row-ic" style="background:#0ea5e9" data-icon="upload"></div>
+        <div class="row-title">Імпортувати з файлу</div>
+      </button>
+      <input type="file" id="importFile" accept="application/json" style="display:none" />
+    </div>
+
+    <div class="section-label">Дані</div>
+    <div class="list">
+      <button class="list-row" id="clearDataBtn">
+        <div class="row-ic" style="background:#ef4444" data-icon="trash"></div>
+        <div class="row-title" style="color:var(--expense)">Очистити всі дані</div>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ MODAL: Note + Date ============ -->
+  <div class="modal-backdrop" id="noteModal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title">Нотатка та дата</div>
+      <textarea class="note-textarea" id="noteText" placeholder="Нотатка (необов'язково)"></textarea>
+
+      <div class="date-tabs">
+        <button class="active" data-datetab="today">Сьогодні</button>
+        <button data-datetab="yesterday">Вчора</button>
+        <button data-datetab="calendar">Календар</button>
+      </div>
+
+      <div class="calendar" id="calendarBox" style="display:none">
+        <div class="calendar-head">
+          <button id="calPrev" data-icon="chevronLeft"></button>
+          <span id="calLabel">Липень 2026</span>
+          <button id="calNext" data-icon="chevronRight"></button>
+        </div>
+        <div class="calendar-grid" id="calendarGrid"></div>
+      </div>
+
+      <button class="modal-save" id="noteSaveBtn">Готово</button>
+    </div>
+  </div>
+
+  <!-- ============ MODAL: Category editor ============ -->
+  <div class="modal-backdrop" id="categoryModal">
+    <div class="modal-sheet">
+      <div class="modal-handle"></div>
+      <div class="modal-title" id="categoryModalTitle">Нова категорія</div>
+
+      <div class="type-toggle" id="categoryTypeToggle">
+        <button class="active expense" data-ctype="expense">Витрата</button>
+        <button data-ctype="income">Дохід</button>
+      </div>
+
+      <input class="text-input" id="categoryNameInput" placeholder="Назва категорії" />
+
+      <div class="section-label" style="padding-left:0">Іконка</div>
+      <div class="icon-grid" id="categoryIconGrid"></div>
+
+      <div class="section-label" style="padding-left:0">Колір</div>
+      <div class="color-grid" id="categoryColorGrid"></div>
+
+      <button class="modal-save" id="categorySaveBtn">Зберегти</button>
+      <button class="modal-save" id="categoryDeleteBtn" style="background:var(--expense);display:none">Видалити категорію</button>
+    </div>
+  </div>
+
+  <!-- ============ TAB BAR ============ -->
+  <nav class="tabbar">
+    <button class="tab-btn active" data-tab="entry"><span data-icon="navEntry"></span>Ввід</button>
+    <button class="tab-btn" data-tab="dashboard"><span data-icon="navDashboard"></span>Дашборд</button>
+    <button class="tab-btn" data-tab="categories"><span data-icon="navCategories"></span>Категорії</button>
+    <button class="tab-btn" data-tab="stats"><span data-icon="navStats"></span>Статистика</button>
+    <button class="tab-btn" data-tab="settings"><span data-icon="navSettings"></span>Налаштування</button>
+  </nav>
+
+</div>
+
+<script src="js/icons.js"></script>
+<script src="js/db.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/entry.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/categories.js"></script>
+<script src="js/stats.js"></script>
+<script src="js/settings.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
