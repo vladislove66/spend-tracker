@@ -56,6 +56,8 @@ const Categories = (() => {
   function renderTypeToggle() {
     document.querySelectorAll("#categoryTypeToggle button").forEach((b) => {
       b.classList.toggle("active", b.dataset.ctype === editing.type);
+      b.classList.toggle("expense", b.dataset.ctype === "expense");
+      b.classList.toggle("income", b.dataset.ctype === "income");
     });
   }
 

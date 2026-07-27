@@ -245,7 +245,17 @@ body {
   overflow-y: auto;
 }
 .modal-handle { width: 36px; height: 4px; background: var(--border); border-radius: 4px; margin: 6px auto 14px; }
-.modal-title { font-size: 16px; font-weight: 700; margin: 0 0 14px; text-align: center; }
+.modal-top { position: relative; margin: 0 0 14px; }
+.modal-title { font-size: 16px; font-weight: 700; margin: 0; text-align: center; }
+.modal-close {
+  position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+  width: 30px; height: 30px;
+  border: none; border-radius: 50%;
+  background: var(--surface-2);
+  color: var(--text-dim);
+  display: flex; align-items: center; justify-content: center;
+}
+.modal-close .icon { width: 16px; height: 16px; }
 .note-textarea {
   width: 100%;
   min-height: 70px;

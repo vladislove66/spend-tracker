@@ -22,7 +22,7 @@
   <section id="screen-entry" class="screen active">
     <div class="page-header"><h1>Витрати</h1></div>
 
-    <div class="type-toggle">
+    <div class="type-toggle" id="entryTypeToggle">
       <button class="active expense" data-type="expense">Витрата</button>
       <button data-type="income">Дохід</button>
     </div>
@@ -155,7 +155,10 @@
   <div class="modal-backdrop" id="noteModal">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title">Нотатка та дата</div>
+      <div class="modal-top">
+        <div class="modal-title">Нотатка та дата</div>
+        <button class="modal-close" data-close-modal="noteModal"><span data-icon="close"></span></button>
+      </div>
       <textarea class="note-textarea" id="noteText" placeholder="Нотатка (необов'язково)"></textarea>
 
       <div class="date-tabs">
@@ -181,7 +184,10 @@
   <div class="modal-backdrop" id="categoryModal">
     <div class="modal-sheet">
       <div class="modal-handle"></div>
-      <div class="modal-title" id="categoryModalTitle">Нова категорія</div>
+      <div class="modal-top">
+        <div class="modal-title" id="categoryModalTitle">Нова категорія</div>
+        <button class="modal-close" data-close-modal="categoryModal"><span data-icon="close"></span></button>
+      </div>
 
       <div class="type-toggle" id="categoryTypeToggle">
         <button class="active expense" data-ctype="expense">Витрата</button>

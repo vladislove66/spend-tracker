@@ -36,8 +36,10 @@ const Entry = (() => {
   }
 
   function renderTypeToggle() {
-    document.querySelectorAll(".type-toggle button").forEach((b) => {
+    document.querySelectorAll("#entryTypeToggle button").forEach((b) => {
       b.classList.toggle("active", b.dataset.type === App.state.entry.type);
+      b.classList.toggle("expense", b.dataset.type === "expense");
+      b.classList.toggle("income", b.dataset.type === "income");
     });
     const confirmBtn = document.getElementById("confirmBtn");
     confirmBtn.classList.toggle("expense", App.state.entry.type === "expense");
@@ -126,7 +128,7 @@ const Entry = (() => {
   }
 
   function init() {
-    document.querySelectorAll(".type-toggle button").forEach((btn) => {
+    document.querySelectorAll("#entryTypeToggle button").forEach((btn) => {
       btn.addEventListener("click", () => {
         App.state.entry.type = btn.dataset.type;
         App.state.entry.categoryId = null;

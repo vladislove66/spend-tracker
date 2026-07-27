@@ -80,6 +80,15 @@ const App = (() => {
       btn.addEventListener("click", () => showTab(btn.dataset.tab));
     });
 
+    document.querySelectorAll("[data-close-modal]").forEach((btn) => {
+      btn.addEventListener("click", () => closeModal(btn.dataset.closeModal));
+    });
+    document.querySelectorAll(".modal-backdrop").forEach((backdrop) => {
+      backdrop.addEventListener("click", (e) => {
+        if (e.target === backdrop) backdrop.classList.remove("open");
+      });
+    });
+
     Entry.init();
     Categories.init();
     Settings.init();
