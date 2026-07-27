@@ -5,23 +5,56 @@ const Settings = (() => {
     return d.toLocaleDateString("uk-UA") + " " + d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
   }
 
-  async function performBackup(silent) {
-    const data = await Db.exportAll();
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+  function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    const stamp = new Date().toISOString().slice(0, 10);
     a.href = url;
-    a.download = `vytraty-backup-${stamp}.json`;
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
     URL.revokeObjectURL(url);
+  }
 
+  async function markBackupDone() {
     const now = new Date().toISOString();
     await Db.setSetting("lastBackupDate", now);
-    document.getElementById("lastBackupDate") && (document.getElementById("lastBackupDate").textContent = fmtDate(now));
-    App.toast(silent ? "Автоматичний бекап збережено" : "Бекап збережено у Файли");
+    const el = document.getElementById("lastBackupDate");
+    if (el) el.textContent = fmtDate(now);
+  }
+
+  async function performBackup(silent) {
+    const data = await Db.exportAll();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+    const stamp = new Date().toISOString().slice(0, 10);
+    const filename = `vytraty-backup-${stamp}.json`;
+
+    if (silent) {
+      // Automatic background backup: no user gesture available, so Web Share
+      // is not allowed by the browser. Falls back to the Downloads folder.
+      downloadBlob(blob, filename);
+      await markBackupDone();
+      App.toast("Автоматичний бекап збережено");
+      return;
+    }
+
+    const file = new File([blob], filename, { type: "application/json" });
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      try {
+        await navigator.share({ files: [file], title: "Бекап витрат" });
+        await markBackupDone();
+        App.toast("Бекап збережено");
+      } catch (err) {
+        if (err && err.name === "AbortError") return; // user cancelled the share sheet
+        downloadBlob(blob, filename);
+        await markBackupDone();
+        App.toast("Бекап збережено у Файли");
+      }
+    } else {
+      downloadBlob(blob, filename);
+      await markBackupDone();
+      App.toast("Бекап збережено у Файли");
+    }
   }
 
   async function render() {
