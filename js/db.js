@@ -15,7 +15,7 @@ const DEFAULT_CATEGORIES = [
 
 const Db = (() => {
   const DB_NAME = "vytraty-db";
-  const DB_VERSION = 1;
+  const DB_VERSION = 2;
   let dbPromise = null;
 
   function open() {
@@ -35,6 +35,11 @@ const Db = (() => {
         }
         if (!db.objectStoreNames.contains("settings")) {
           db.createObjectStore("settings", { keyPath: "key" });
+        }
+        // Separate store so a silent internal auto-backup survives
+        // "Очистити всі дані" and other bugs that wipe the stores above.
+        if (!db.objectStoreNames.contains("backupSnapshot")) {
+          db.createObjectStore("backupSnapshot", { keyPath: "key" });
         }
       };
       req.onsuccess = () => resolve(req.result);
@@ -63,10 +68,21 @@ const Db = (() => {
     const count = await reqToPromise(store.count());
     if (count === 0) {
       const wstore = await tx("categories", "readwrite");
-      for (const c of DEFAULT_CATEGORIES) {
-        wstore.put({ id: uuid(), ...c });
-      }
+      DEFAULT_CATEGORIES.forEach((c, i) => wstore.put({ id: uuid(), ...c, order: i }));
     }
+  }
+
+  // Backfills `order` for categories created before manual reordering
+  // existed. Uses each category's current (arbitrary, UUID-sorted) position
+  // as its starting order — the user can then drag to rearrange from there.
+  async function migrateCategoryOrder() {
+    const store = await tx("categories", "readonly");
+    const cats = await reqToPromise(store.getAll());
+    if (!cats.length || cats.every((c) => typeof c.order === "number")) return;
+    const wstore = await tx("categories", "readwrite");
+    cats.forEach((c, i) => {
+      if (typeof c.order !== "number") wstore.put({ ...c, order: i });
+    });
   }
 
   return {
@@ -75,7 +91,9 @@ const Db = (() => {
     async init() {
       await open();
       await seedIfEmpty();
+      await migrateCategoryOrder();
     },
+    migrateCategoryOrder,
 
     // Transactions
     async addTransaction(t) {
@@ -96,10 +114,13 @@ const Db = (() => {
       const store = await tx("transactions", "readonly");
       return reqToPromise(store.getAll());
     },
+    async getTransactionsByDateRange(startISO, endISO) {
+      const store = await tx("transactions", "readonly");
+      return reqToPromise(store.index("byDate").getAll(IDBKeyRange.bound(startISO, endISO)));
+    },
     async getTransactionsByMonth(year, month) {
-      const all = await this.getAllTransactions();
       const prefix = `${year}-${String(month).padStart(2, "0")}`;
-      return all.filter((t) => t.date.startsWith(prefix));
+      return this.getTransactionsByDateRange(`${prefix}-01`, `${prefix}-31`);
     },
 
     // Categories
@@ -119,7 +140,17 @@ const Db = (() => {
     },
     async getCategories() {
       const store = await tx("categories", "readonly");
-      return reqToPromise(store.getAll());
+      const cats = await reqToPromise(store.getAll());
+      return cats.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    },
+    async reorderCategories(orderedIds) {
+      const cats = await this.getCategories();
+      const byId = new Map(cats.map((c) => [c.id, c]));
+      const wstore = await tx("categories", "readwrite");
+      orderedIds.forEach((id, i) => {
+        const c = byId.get(id);
+        if (c) wstore.put({ ...c, order: i });
+      });
     },
 
     // Settings (key-value)
@@ -149,11 +180,23 @@ const Db = (() => {
       for (const s of data.settings || []) sStore.put(s);
     },
     async clearAll() {
+      // backupSnapshot is intentionally excluded: it's the safety net for
+      // exactly this kind of wipe (accidental click or future bug).
       for (const name of ["transactions", "categories", "settings"]) {
         const store = await tx(name, "readwrite");
         await reqToPromise(store.clear());
       }
       await seedIfEmpty();
+    },
+
+    // Silent internal backup snapshot (separate store, survives clearAll)
+    async getBackupSnapshot() {
+      const store = await tx("backupSnapshot", "readonly");
+      return reqToPromise(store.get("snapshot"));
+    },
+    async setBackupSnapshot(data) {
+      const store = await tx("backupSnapshot", "readwrite");
+      await reqToPromise(store.put({ key: "snapshot", data, savedAt: new Date().toISOString() }));
     },
   };
 })();

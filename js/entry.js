@@ -14,7 +14,7 @@ const Entry = (() => {
       .map((c) => {
         const active = c.id === App.state.entry.categoryId;
         return `<button class="cat-chip${active ? " active" : ""}" style="--cc:${c.color}" data-cat="${c.id}">
-          <span class="cat-ic">${renderCatIcon(c.icon)}</span><span>${c.name}</span>
+          <span class="cat-ic">${renderCatIcon(c.icon)}</span><span>${App.escapeHtml(c.name)}</span>
         </button>`;
       })
       .join("");
@@ -78,6 +78,10 @@ const Entry = (() => {
     }
     App.state.entry.amount = amt;
     renderAmount();
+    const val = document.getElementById("amountValue");
+    val.classList.remove("pulse");
+    void val.offsetWidth; // restart the animation on repeated same-value presses
+    val.classList.add("pulse");
   }
 
   // ---- Note + date modal ----

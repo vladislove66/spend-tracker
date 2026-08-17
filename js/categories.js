@@ -9,7 +9,7 @@ const Categories = (() => {
     App.state.categories = cats;
     const list = document.getElementById("categoriesList");
     if (!cats.length) {
-      list.innerHTML = '<div class="empty-state">Немає категорій</div>';
+      list.innerHTML = App.emptyState("wallet", "Немає категорій");
       return;
     }
     list.innerHTML = cats
@@ -17,16 +17,102 @@ const Categories = (() => {
         (c) => `<button class="list-row" data-id="${c.id}">
           <span class="row-ic" style="background:${c.color}">${renderCatIcon(c.icon)}</span>
           <span style="flex:1">
-            <div class="row-title">${c.name}</div>
+            <div class="row-title">${App.escapeHtml(c.name)}</div>
             <div class="row-sub">${c.type === "income" ? "Дохід" : "Витрата"}</div>
           </span>
-          <span class="chev">${icon("chevronRight")}</span>
+          <span class="drag-handle">${icon("drag")}</span>
         </button>`
       )
       .join("");
     list.querySelectorAll(".list-row").forEach((row) => {
       row.addEventListener("click", () => openEditor(cats.find((c) => c.id === row.dataset.id)));
     });
+  }
+
+  // Drag-to-reorder via a dedicated handle (keeps tapping the rest of the
+  // row free to open the editor, and setPointerCapture works for touch+mouse).
+  function initReorder() {
+    const list = document.getElementById("categoriesList");
+    let dragRow = null, originalOrder = [], order = [], dragIndex = 0, startY = 0, rowH = 0, suppressClick = false;
+
+    function rows() {
+      return Array.from(list.querySelectorAll(".list-row"));
+    }
+
+    list.addEventListener("pointerdown", (e) => {
+      const handle = e.target.closest(".drag-handle");
+      if (!handle) return;
+      const row = handle.closest(".list-row");
+      if (!row) return;
+      e.preventDefault();
+      const all = rows();
+      originalOrder = all.map((r) => r.dataset.id);
+      order = originalOrder.slice();
+      dragRow = row;
+      dragIndex = order.indexOf(row.dataset.id);
+      startY = e.clientY;
+      rowH = row.offsetHeight;
+      dragRow.style.transition = "none";
+      dragRow.setPointerCapture(e.pointerId);
+      dragRow.classList.add("dragging");
+      list.classList.add("reordering");
+    });
+
+    list.addEventListener("pointermove", (e) => {
+      if (!dragRow) return;
+      const dy = e.clientY - startY;
+      if (Math.abs(dy) > 4) suppressClick = true;
+      dragRow.style.transform = `translateY(${dy}px)`;
+
+      const slotShift = Math.round(dy / rowH);
+      const targetIndex = Math.max(0, Math.min(originalOrder.length - 1, dragIndex + slotShift));
+      const currentPos = order.indexOf(dragRow.dataset.id);
+      if (targetIndex !== currentPos) {
+        order.splice(currentPos, 1);
+        order.splice(targetIndex, 0, dragRow.dataset.id);
+      }
+
+      rows().forEach((row) => {
+        if (row === dragRow) return;
+        const id = row.dataset.id;
+        const offset = (order.indexOf(id) - originalOrder.indexOf(id)) * rowH;
+        row.style.transform = offset ? `translateY(${offset}px)` : "";
+      });
+    });
+
+    async function finishDrag(e) {
+      if (!dragRow) return;
+      dragRow.releasePointerCapture(e.pointerId);
+      dragRow.classList.remove("dragging");
+      dragRow.style.transition = "";
+      dragRow.style.transform = "";
+      list.classList.remove("reordering");
+      rows().forEach((row) => { row.style.transform = ""; });
+      const changed = order.some((id, i) => id !== originalOrder[i]);
+      const finalOrder = order;
+      dragRow = null;
+      if (changed) {
+        await Db.reorderCategories(finalOrder);
+        await App.refreshCategories();
+        render();
+      }
+    }
+
+    list.addEventListener("pointerup", finishDrag);
+    list.addEventListener("pointercancel", finishDrag);
+
+    // Suppress the row's own click (which opens the editor) after a real drag.
+    list.addEventListener(
+      "click",
+      (e) => {
+        if (suppressClick) {
+          e.stopPropagation();
+          e.preventDefault();
+          suppressClick = false;
+        }
+      },
+      true
+    );
   }
 
   function renderIconGrid() {
@@ -84,6 +170,7 @@ const Categories = (() => {
   }
 
   function init() {
+    initReorder();
     document.getElementById("addCategoryBtn").addEventListener("click", () => openEditor(null));
 
     document.querySelectorAll("#categoryTypeToggle button").forEach((btn) => {
@@ -103,7 +190,7 @@ const Categories = (() => {
       const iconValue = editing.emoji.trim() ? editing.emoji.trim() : editing.icon;
       const record = { id: editing.id || Db.uuid(), name, icon: iconValue, color: editing.color, type: editing.type };
       if (editing.id) await Db.updateCategory(record);
-      else await Db.addCategory(record);
+      else await Db.addCategory({ ...record, order: App.state.categories.length });
       await App.refreshCategories();
       App.closeModal("categoryModal");
       render();

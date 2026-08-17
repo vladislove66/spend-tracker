@@ -1,4 +1,4 @@
-const CACHE_NAME = "vytraty-cache-v2";
+const CACHE_NAME = "vytraty-cache-v8";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -34,18 +34,36 @@ self.addEventListener("activate", (event) => {
   self.clients.claim();
 });
 
+// Core app files (markup/code/styles) must never go stale behind a forgotten
+// CACHE_NAME bump: fetch them network-first, falling back to cache offline.
+// Static assets that rarely change (icons) stay cache-first for speed.
+const CORE_RE = /\.(?:html|js|css|json)$/;
+
+function isCoreRequest(request, url) {
+  return request.mode === "navigate" || url.pathname.endsWith("/") || CORE_RE.test(url.pathname);
+}
+
+function putInCache(request, response) {
+  const copy = response.clone();
+  caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+  return response;
+}
+
+function networkFirst(request) {
+  return fetch(request)
+    .then((response) => putInCache(request, response))
+    .catch(() => caches.match(request));
+}
+
+function cacheFirst(request) {
+  return caches.match(request).then((cached) => {
+    if (cached) return cached;
+    return fetch(request).then((response) => putInCache(request, response));
+  });
+}
+
 self.addEventListener("fetch", (event) => {
   if (event.request.method !== "GET") return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request)
-        .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-          return response;
-        })
-        .catch(() => cached);
-    })
-  );
+  const url = new URL(event.request.url);
+  event.respondWith(isCoreRequest(event.request, url) ? networkFirst(event.request) : cacheFirst(event.request));
 });

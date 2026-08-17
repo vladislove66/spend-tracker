@@ -67,6 +67,9 @@
 
     <div class="section-label">По днях</div>
     <div class="day-list" id="dayList"></div>
+
+    <div class="section-label" id="dayDetailLabel">Сьогодні</div>
+    <div class="day-detail-list" id="dayDetailList"></div>
   </section>
 
   <!-- ============ CATEGORIES ============ -->
@@ -127,7 +130,7 @@
       <div class="list-row" id="lastBackupRow" style="width:auto">
         <div class="row-ic" style="background:#6366f1" data-icon="calendar"></div>
         <div style="flex:1">
-          <div class="row-title">Останній бекап</div>
+          <div class="row-title">Останній файл-бекап</div>
           <div class="row-sub" id="lastBackupDate">—</div>
         </div>
       </div>
@@ -140,6 +143,13 @@
         <div class="row-title">Імпортувати з файлу</div>
       </button>
       <input type="file" id="importFile" accept="application/json" style="display:none" />
+      <button class="list-row" id="restoreAutoBackupBtn">
+        <div class="row-ic" style="background:#8b5cf6" data-icon="restore"></div>
+        <div style="flex:1">
+          <div class="row-title">Відновити з автобекапу</div>
+          <div class="row-sub" id="autoBackupDate">—</div>
+        </div>
+      </button>
     </div>
 
     <div class="section-label">Дані</div>

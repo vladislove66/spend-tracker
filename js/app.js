@@ -8,6 +8,7 @@ const App = (() => {
     currency: "UAH",
     entry: { type: "expense", amount: "0", categoryId: null, date: todayISO(), note: "" },
     dashboardDate: currentYM(),
+    dashboardSelectedDay: todayISO(),
     statsDate: currentYM(),
   };
 
@@ -25,6 +26,32 @@ const App = (() => {
   function fmtMoney(n) {
     const val = Math.round(n).toLocaleString("uk-UA");
     return `${val} ${state.currency}`;
+  }
+
+  const ESCAPE_MAP = { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" };
+  function escapeHtml(str) {
+    return String(str ?? "").replace(/[&<>"']/g, (c) => ESCAPE_MAP[c]);
+  }
+
+  function catById(id) {
+    return state.categories.find((c) => c.id === id);
+  }
+
+  function emptyState(iconName, text) {
+    return `<div class="empty-state">${icon(iconName)}<div>${escapeHtml(text)}</div></div>`;
+  }
+
+  function bindMonthNav(prevId, nextId, dateKey, renderFn) {
+    document.getElementById(prevId).addEventListener("click", () => {
+      const s = state[dateKey];
+      s.month--; if (s.month < 1) { s.month = 12; s.year--; }
+      renderFn();
+    });
+    document.getElementById(nextId).addEventListener("click", () => {
+      const s = state[dateKey];
+      s.month++; if (s.month > 12) { s.month = 1; s.year++; }
+      renderFn();
+    });
   }
 
   let toastTimer = null;
@@ -61,14 +88,12 @@ const App = (() => {
   }
 
   async function checkAutoBackup() {
-    const last = await Db.getSetting("lastBackupDate", null);
-    const now = Date.now();
-    const days = last ? (now - new Date(last).getTime()) / 86400000 : Infinity;
-    if (days >= 5) {
-      try {
-        await Settings.performBackup(true);
-      } catch (e) { /* silent: backup is best-effort */ }
-    }
+    try {
+      await Settings.maybeAutoBackup();
+    } catch (e) { /* silent: internal snapshot is best-effort */ }
+    try {
+      await Settings.maybeRemindExport();
+    } catch (e) { /* silent */ }
   }
 
   async function init() {
@@ -107,5 +132,5 @@ const App = (() => {
 
   document.addEventListener("DOMContentLoaded", init);
 
-  return { state, MONTHS_UK, DOW_UK, DOW_FULL_UK, todayISO, isoDate, fmtMoney, toast, openModal, closeModal, showTab, applyStaticIcons, refreshCategories };
+  return { state, MONTHS_UK, DOW_UK, DOW_FULL_UK, todayISO, isoDate, fmtMoney, escapeHtml, catById, bindMonthNav, emptyState, toast, openModal, closeModal, showTab, applyStaticIcons, refreshCategories };
 })();
