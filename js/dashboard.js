@@ -49,7 +49,7 @@ const Dashboard = (() => {
   function initSwipeToDelete(container, onDelete) {
     const REVEAL = 76;
     let row = null, content = null, startX = 0, startY = 0, baseX = 0, dx = 0, dragging = false;
-    let openRow = null, suppressNextClick = false;
+    let openRow = null, suppressNextClick = false, suppressTimer = null;
 
     function close(except) {
       if (openRow && openRow !== except) {
@@ -92,6 +92,11 @@ const Dashboard = (() => {
       if (!row) return;
       if (dragging) {
         suppressNextClick = true;
+        // Safety net: not every browser fires a click after a captured drag,
+        // so don't rely solely on the click listener below to clear this —
+        // otherwise a swipe with no following click leaves it stuck true.
+        clearTimeout(suppressTimer);
+        suppressTimer = setTimeout(() => { suppressNextClick = false; }, 250);
         content.style.transition = "";
         const shouldOpen = dx < -REVEAL / 2;
         content.style.transform = shouldOpen ? `translateX(-${REVEAL}px)` : "";

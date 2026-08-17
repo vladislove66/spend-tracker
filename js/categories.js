@@ -33,7 +33,8 @@ const Categories = (() => {
   // row free to open the editor, and setPointerCapture works for touch+mouse).
   function initReorder() {
     const list = document.getElementById("categoriesList");
-    let dragRow = null, originalOrder = [], order = [], dragIndex = 0, startY = 0, rowH = 0, suppressClick = false;
+    let dragRow = null, originalOrder = [], order = [], dragIndex = 0, startY = 0, rowH = 0;
+    let suppressClick = false, suppressTimer = null;
 
     function rows() {
       return Array.from(list.querySelectorAll(".list-row"));
@@ -91,6 +92,16 @@ const Categories = (() => {
       const changed = order.some((id, i) => id !== originalOrder[i]);
       const finalOrder = order;
       dragRow = null;
+      if (suppressClick) {
+        // A real drag happened. If the browser fires a synthetic click right
+        // after pointerup despite the movement, the capture-phase listener
+        // below consumes exactly that one click. Some browsers never fire it
+        // at all though, which would otherwise leave suppressClick stuck
+        // true forever and silently swallow every future tap on the list —
+        // so always clear it shortly after, whether or not a click arrives.
+        clearTimeout(suppressTimer);
+        suppressTimer = setTimeout(() => { suppressClick = false; }, 250);
+      }
       if (changed) {
         await Db.reorderCategories(finalOrder);
         await App.refreshCategories();
