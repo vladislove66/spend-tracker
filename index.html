@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="uk">
+<html lang="en">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
-<title>Витрати</title>
+<title>Spend Tracker</title>
 <meta name="theme-color" content="#0fb9f7" />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 <link rel="icon" href="icons/favicon-32.png" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-<meta name="apple-mobile-web-app-title" content="Витрати" />
+<meta name="apple-mobile-web-app-title" content="Spend Tracker" />
 <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
@@ -21,7 +21,7 @@
   <!-- ============ ENTRY ============ -->
   <section id="screen-entry" class="screen active">
     <div class="entry-header" id="entryHeader">
-      <button class="entry-type-title expense" id="entryTypeTitle" data-type="expense">Витрата</button>
+      <button class="entry-type-title expense" id="entryTypeTitle" data-type="expense">Expense</button>
     </div>
 
     <div class="category-row expense" id="categoryRow"></div>
@@ -39,7 +39,7 @@
 
     <div class="entry-actions">
       <button class="icon-btn" id="statsShortcutBtn" data-icon="navStats"></button>
-      <span class="today-total expense" id="todayTotal">Сьогодні: 0</span>
+      <span class="today-total expense" id="todayTotal">Today: 0</span>
       <button class="confirm-btn expense" id="confirmBtn" style="display:none"><span data-icon="check"></span></button>
       <button class="icon-btn note-indicator" id="noteBtn" data-icon="comment" style="display:none"></button>
     </div>
@@ -51,18 +51,18 @@
       <div class="dash-hero-top">
         <button class="hero-icon-btn" id="dashGridBtn" data-icon="grid9"></button>
         <button class="hero-month" id="monthPickerBtn">
-          <span id="monthLabel">Липень 2026</span><span data-icon="chevronDown"></span>
+          <span id="monthLabel">July 2026</span><span data-icon="chevronDown"></span>
         </button>
         <button class="hero-icon-btn" id="dashSettingsBtn" data-icon="navSettings"></button>
       </div>
       <div class="dash-hero-swipe" id="dashHeroSwipe">
         <div class="dash-hero-page">
           <div class="hero-value" id="monthBalance">0 UAH</div>
-          <div class="hero-label">Баланс за місяць</div>
+          <div class="hero-label">Monthly Balance</div>
         </div>
         <div class="dash-hero-page">
           <div class="hero-value" id="totalBalance">0 UAH</div>
-          <div class="hero-label">Загальний баланс</div>
+          <div class="hero-label">Total Balance</div>
         </div>
       </div>
       <div class="hero-dots" id="heroDots"><span class="active"></span><span></span></div>
@@ -70,10 +70,10 @@
 
     <div class="card-grid" id="dashCards"></div>
 
-    <div class="section-label">По днях</div>
+    <div class="section-label">By Day</div>
     <div class="day-list" id="dayList"></div>
 
-    <div class="section-label" id="dayDetailLabel">Сьогодні</div>
+    <div class="section-label" id="dayDetailLabel">Today</div>
     <div class="day-detail-list" id="dayDetailList"></div>
 
     <div class="month-overlay" id="monthOverlay">
@@ -84,40 +84,40 @@
 
   <!-- ============ CATEGORIES ============ -->
   <section id="screen-categories" class="screen">
-    <div class="page-header"><h1>Категорії</h1></div>
+    <div class="page-header"><h1>Categories</h1></div>
     <div class="list" id="categoriesList"></div>
   </section>
 
   <!-- ============ STATS ============ -->
   <section id="screen-stats" class="screen">
-    <div class="page-header"><h1>Статистика</h1></div>
+    <div class="page-header"><h1>Statistics</h1></div>
 
     <div class="month-picker">
       <button id="statsPrevMonth" data-icon="chevronLeft"></button>
-      <span id="statsMonthLabel">Липень 2026</span>
+      <span id="statsMonthLabel">July 2026</span>
       <button id="statsNextMonth" data-icon="chevronRight"></button>
     </div>
 
     <div class="chart-card">
-      <h3>Розподіл витрат по категоріях</h3>
+      <h3>Expenses by category</h3>
       <div id="donutChart"></div>
     </div>
 
     <div class="chart-card">
-      <h3>Динаміка за 6 місяців</h3>
+      <h3>6-month trend</h3>
       <div id="trendChart"></div>
     </div>
   </section>
 
   <!-- ============ SETTINGS ============ -->
   <section id="screen-settings" class="screen">
-    <div class="page-header"><h1>Налаштування</h1></div>
+    <div class="page-header"><h1>Settings</h1></div>
 
     <div class="list" style="margin-bottom:18px">
       <div class="list-row" style="width:auto">
         <div class="row-ic" style="background:#0ea5e9" data-icon="wallet"></div>
         <div style="flex:1">
-          <div class="row-title">Валюта</div>
+          <div class="row-title">Currency</div>
         </div>
         <select id="currencySelect" class="text-input" style="width:90px;padding:8px">
           <option value="UAH">UAH</option>
@@ -128,44 +128,44 @@
       <div class="list-row" style="width:auto">
         <div class="row-ic" style="background:#f59e0b" data-icon="edit"></div>
         <div style="flex:1">
-          <div class="row-title">Початковий баланс</div>
+          <div class="row-title">Starting Balance</div>
         </div>
         <input id="startBalanceInput" class="text-input" style="width:100px;padding:8px" inputmode="decimal" />
       </div>
     </div>
 
-    <div class="section-label">Резервна копія</div>
+    <div class="section-label">Backup</div>
     <div class="list">
       <div class="list-row" id="lastBackupRow" style="width:auto">
         <div class="row-ic" style="background:#6366f1" data-icon="calendar"></div>
         <div style="flex:1">
-          <div class="row-title">Останній файл-бекап</div>
+          <div class="row-title">Last Backup File</div>
           <div class="row-sub" id="lastBackupDate">—</div>
         </div>
       </div>
       <button class="list-row" id="exportBtn">
         <div class="row-ic" style="background:#22c55e" data-icon="download"></div>
-        <div class="row-title">Експортувати зараз</div>
+        <div class="row-title">Export Now</div>
       </button>
       <button class="list-row" id="importBtn">
         <div class="row-ic" style="background:#06b6d4" data-icon="upload"></div>
-        <div class="row-title">Імпортувати з файлу</div>
+        <div class="row-title">Import from File</div>
       </button>
       <input type="file" id="importFile" accept="application/json" style="display:none" />
       <button class="list-row" id="restoreAutoBackupBtn">
         <div class="row-ic" style="background:#8b5cf6" data-icon="restore"></div>
         <div style="flex:1">
-          <div class="row-title">Відновити з автобекапу</div>
+          <div class="row-title">Restore from Auto-Backup</div>
           <div class="row-sub" id="autoBackupDate">—</div>
         </div>
       </button>
     </div>
 
-    <div class="section-label">Дані</div>
+    <div class="section-label">Data</div>
     <div class="list">
       <button class="list-row" id="clearDataBtn">
         <div class="row-ic" style="background:#3a3a3c" data-icon="trash"></div>
-        <div class="row-title">Очистити всі дані</div>
+        <div class="row-title">Clear All Data</div>
       </button>
     </div>
   </section>
@@ -175,27 +175,27 @@
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-top">
-        <div class="modal-title">Нотатка та дата</div>
+        <div class="modal-title">Note & Date</div>
         <button class="modal-close" data-close-modal="noteModal"><span data-icon="close"></span></button>
       </div>
-      <textarea class="note-textarea" id="noteText" placeholder="Нотатка (необов'язково)"></textarea>
+      <textarea class="note-textarea" id="noteText" placeholder="Note (optional)"></textarea>
 
       <div class="date-tabs">
-        <button class="active" data-datetab="today">Сьогодні</button>
-        <button data-datetab="yesterday">Вчора</button>
-        <button data-datetab="calendar">Календар</button>
+        <button class="active" data-datetab="today">Today</button>
+        <button data-datetab="yesterday">Yesterday</button>
+        <button data-datetab="calendar">Calendar</button>
       </div>
 
       <div class="calendar" id="calendarBox" style="display:none">
         <div class="calendar-head">
           <button id="calPrev" data-icon="chevronLeft"></button>
-          <span id="calLabel">Липень 2026</span>
+          <span id="calLabel">July 2026</span>
           <button id="calNext" data-icon="chevronRight"></button>
         </div>
         <div class="calendar-grid" id="calendarGrid"></div>
       </div>
 
-      <button class="modal-save" id="noteSaveBtn">Готово</button>
+      <button class="modal-save" id="noteSaveBtn">Done</button>
     </div>
   </div>
 
@@ -204,38 +204,38 @@
     <div class="modal-sheet">
       <div class="modal-handle"></div>
       <div class="modal-top">
-        <div class="modal-title" id="categoryModalTitle">Нова категорія</div>
+        <div class="modal-title" id="categoryModalTitle">New Category</div>
         <button class="modal-close" data-close-modal="categoryModal"><span data-icon="close"></span></button>
       </div>
 
       <div class="type-toggle" id="categoryTypeToggle">
-        <button class="active expense" data-ctype="expense">Витрата</button>
-        <button data-ctype="income">Дохід</button>
+        <button class="active expense" data-ctype="expense">Expense</button>
+        <button data-ctype="income">Income</button>
       </div>
 
-      <input class="text-input" id="categoryNameInput" placeholder="Назва категорії" />
+      <input class="text-input" id="categoryNameInput" placeholder="Category name" />
 
-      <div class="section-label" style="padding-left:0">Іконка</div>
+      <div class="section-label" style="padding-left:0">Icon</div>
       <div class="icon-grid" id="categoryIconGrid"></div>
 
-      <div class="section-label" style="padding-left:0">Або своє emoji</div>
-      <input class="text-input" id="categoryEmojiInput" placeholder="Натисни і відкрий emoji-клавіатуру 🙂" maxlength="8" />
+      <div class="section-label" style="padding-left:0">Or your own emoji</div>
+      <input class="text-input" id="categoryEmojiInput" placeholder="Tap to open the emoji keyboard 🙂" maxlength="8" />
 
-      <div class="section-label" style="padding-left:0">Колір</div>
+      <div class="section-label" style="padding-left:0">Color</div>
       <div class="color-grid" id="categoryColorGrid"></div>
 
-      <button class="modal-save" id="categorySaveBtn">Зберегти</button>
-      <button class="modal-save" id="categoryDeleteBtn" style="background:var(--expense);display:none">Видалити категорію</button>
+      <button class="modal-save" id="categorySaveBtn">Save</button>
+      <button class="modal-save" id="categoryDeleteBtn" style="background:var(--expense);display:none">Delete Category</button>
     </div>
   </div>
 
   <!-- ============ TAB BAR ============ -->
   <nav class="tabbar">
-    <button class="tab-btn active" data-tab="entry"><span data-icon="navEntry"></span>Ввід</button>
-    <button class="tab-btn" data-tab="dashboard"><span data-icon="navDashboard"></span>Дашборд</button>
-    <button class="tab-btn" data-tab="categories"><span data-icon="navCategories"></span>Категорії</button>
-    <button class="tab-btn" data-tab="stats"><span data-icon="navStats"></span>Статистика</button>
-    <button class="tab-btn" data-tab="settings"><span data-icon="navSettings"></span>Налаштування</button>
+    <button class="tab-btn active" data-tab="entry"><span data-icon="navEntry"></span>Entry</button>
+    <button class="tab-btn" data-tab="dashboard"><span data-icon="navDashboard"></span>Dashboard</button>
+    <button class="tab-btn" data-tab="categories"><span data-icon="navCategories"></span>Categories</button>
+    <button class="tab-btn" data-tab="stats"><span data-icon="navStats"></span>Statistics</button>
+    <button class="tab-btn" data-tab="settings"><span data-icon="navSettings"></span>Settings</button>
   </nav>
 
 </div>

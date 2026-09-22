@@ -1,7 +1,7 @@
 const App = (() => {
-  const MONTHS_UK = ["Січень","Лютий","Березень","Квітень","Травень","Червень","Липень","Серпень","Вересень","Жовтень","Листопад","Грудень"];
-  const DOW_UK = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
-  const DOW_FULL_UK = ["Понеділок","Вівторок","Середа","Четвер","П'ятниця","Субота","Неділя"];
+  const MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  const DOW = ["Mon","Tue","Wed","Thu","Fri","Sat","Sun"];
+  const DOW_FULL = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
 
   const state = {
     categories: [],
@@ -132,5 +132,5 @@ const App = (() => {
 
   document.addEventListener("DOMContentLoaded", init);
 
-  return { state, MONTHS_UK, DOW_UK, DOW_FULL_UK, todayISO, isoDate, fmtMoney, escapeHtml, catById, bindMonthNav, emptyState, toast, openModal, closeModal, showTab, applyStaticIcons, refreshCategories };
+  return { state, MONTHS, DOW, DOW_FULL, todayISO, isoDate, fmtMoney, escapeHtml, catById, bindMonthNav, emptyState, toast, openModal, closeModal, showTab, applyStaticIcons, refreshCategories };
 })();

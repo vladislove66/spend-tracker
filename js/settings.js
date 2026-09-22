@@ -3,9 +3,9 @@ const Settings = (() => {
   const EXPORT_REMINDER_INTERVAL_DAYS = 30;
 
   function fmtDate(iso) {
-    if (!iso) return "Ще не робився";
+    if (!iso) return "Never done yet";
     const d = new Date(iso);
-    return d.toLocaleDateString("uk-UA") + " " + d.toLocaleTimeString("uk-UA", { hour: "2-digit", minute: "2-digit" });
+    return d.toLocaleDateString("en-GB") + " " + d.toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" });
   }
 
   function daysSince(iso) {
@@ -41,19 +41,19 @@ const Settings = (() => {
     const file = new File([blob], filename, { type: "application/json" });
     if (navigator.canShare && navigator.canShare({ files: [file] })) {
       try {
-        await navigator.share({ files: [file], title: "Бекап витрат" });
+        await navigator.share({ files: [file], title: "Expense backup" });
         await markExportDone();
-        App.toast("Бекап збережено");
+        App.toast("Backup saved");
       } catch (err) {
         if (err && err.name === "AbortError") return; // user cancelled the share sheet
         downloadBlob(blob, filename);
         await markExportDone();
-        App.toast("Бекап збережено у Файли");
+        App.toast("Backup saved to Files");
       }
     } else {
       downloadBlob(blob, filename);
       await markExportDone();
-      App.toast("Бекап збережено у Файли");
+      App.toast("Backup saved to Files");
     }
   }
 
@@ -72,16 +72,16 @@ const Settings = (() => {
   async function maybeRemindExport() {
     const last = await Db.getSetting("lastRealExportAt", null);
     if (daysSince(last) < EXPORT_REMINDER_INTERVAL_DAYS) return;
-    App.toast("Давно не було реального бекапу — варто зробити у Налаштуваннях");
+    App.toast("It has been a while since your last backup — consider making one in Settings");
   }
 
   async function restoreFromAutoBackup() {
     const snap = await Db.getBackupSnapshot();
-    if (!snap) { App.toast("Автобекапу ще немає"); return; }
-    if (!confirm(`Відновити дані зі внутрішньої копії від ${fmtDate(snap.savedAt)}? Поточні дані буде замінено.`)) return;
+    if (!snap) { App.toast("No auto-backup yet"); return; }
+    if (!confirm(`Restore data from the internal snapshot dated ${fmtDate(snap.savedAt)}? Current data will be replaced.`)) return;
     await Db.importAll(snap.data);
     await App.refreshCategories();
-    App.toast("Дані відновлено");
+    App.toast("Data restored");
     render();
   }
 
@@ -92,7 +92,7 @@ const Settings = (() => {
     const last = await Db.getSetting("lastRealExportAt", null);
     document.getElementById("lastBackupDate").textContent = fmtDate(last);
     const snap = await Db.getBackupSnapshot();
-    document.getElementById("autoBackupDate").textContent = snap ? fmtDate(snap.savedAt) : "Ще немає";
+    document.getElementById("autoBackupDate").textContent = snap ? fmtDate(snap.savedAt) : "Not yet";
   }
 
   function init() {
@@ -100,13 +100,13 @@ const Settings = (() => {
       App.state.currency = e.target.value;
       await Db.setSetting("currency", App.state.currency);
       Entry.render();
-      App.toast("Валюту змінено");
+      App.toast("Currency changed");
     });
 
     document.getElementById("startBalanceInput").addEventListener("change", async (e) => {
       const val = parseFloat(e.target.value) || 0;
       await Db.setSetting("startBalance", val);
-      App.toast("Збережено");
+      App.toast("Saved");
     });
 
     document.getElementById("exportBtn").addEventListener("click", () => performBackup());
@@ -124,19 +124,19 @@ const Settings = (() => {
         await Db.importAll(data);
         await Db.migrateCategoryOrder();
         await App.refreshCategories();
-        App.toast("Дані імпортовано");
+        App.toast("Data imported");
         render();
       } catch (err) {
-        App.toast("Не вдалося прочитати файл");
+        App.toast("Could not read the file");
       }
       e.target.value = "";
     });
 
     document.getElementById("clearDataBtn").addEventListener("click", async () => {
-      if (!confirm("Видалити всі дані без можливості відновлення?")) return;
+      if (!confirm("Delete all data with no way to recover it?")) return;
       await Db.clearAll();
       await App.refreshCategories();
-      App.toast("Дані очищено");
+      App.toast("Data cleared");
       render();
     });
   }

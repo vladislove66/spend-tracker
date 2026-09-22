@@ -9,7 +9,7 @@ const Charts = {
     // items: [{label, value, color}]
     const total = items.reduce((s, i) => s + i.value, 0);
     if (total <= 0) {
-      return App.emptyState("wallet", "Немає витрат за цей період");
+      return App.emptyState("wallet", "No expenses in this period");
     }
     const r = 40, cx = 50, cy = 50, circ = 2 * Math.PI * r;
     const gap = items.length > 1 ? 2 : 0; // small visual seam between segments
@@ -26,7 +26,7 @@ const Charts = {
     const svg = `<svg class="donut-svg" viewBox="0 0 100 100" style="width:180px;height:180px;display:block;margin:0 auto">
       <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--surface-2)" stroke-width="14" />
       ${circles}
-      <text x="50" y="47" text-anchor="middle" font-size="11" fill="var(--text-dim)">Всього</text>
+      <text x="50" y="47" text-anchor="middle" font-size="11" fill="var(--text-dim)">Total</text>
       <text x="50" y="60" text-anchor="middle" font-size="13" font-weight="700" fill="var(--text)">${Math.round(total).toLocaleString("uk-UA")}</text>
     </svg>`;
 
@@ -44,7 +44,7 @@ const Charts = {
   // (stats.js always builds the trend ending at the currently selected month).
   bars(items, highlightIndex = items.length - 1) {
     if (items.every((i) => i.value === 0)) {
-      return App.emptyState("navStats", "Немає даних");
+      return App.emptyState("navStats", "No data");
     }
     const max = Math.max(...items.map((i) => i.value), 1);
     const vbW = 300, baseY = 82;

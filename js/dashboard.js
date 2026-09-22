@@ -4,19 +4,19 @@ const Dashboard = (() => {
     const listEl = document.getElementById("dayDetailList");
 
     if (!selected) {
-      label.textContent = "Операції";
-      listEl.innerHTML = App.emptyState("calendar", "Немає операцій цього місяця");
+      label.textContent = "Transactions";
+      listEl.innerHTML = App.emptyState("calendar", "No transactions this month");
       return;
     }
 
     const d = new Date(selected + "T00:00:00");
     label.textContent =
       selected === App.todayISO()
-        ? "Сьогодні"
-        : `${d.getDate()} ${App.MONTHS_UK[d.getMonth()].toLowerCase()}, ${App.DOW_FULL_UK[(d.getDay() + 6) % 7].toLowerCase()}`;
+        ? "Today"
+        : `${d.getDate()} ${App.MONTHS[d.getMonth()].toLowerCase()}, ${App.DOW_FULL[(d.getDay() + 6) % 7].toLowerCase()}`;
 
     if (!dayTxs.length) {
-      listEl.innerHTML = App.emptyState("calendar", "Немає операцій за цей день");
+      listEl.innerHTML = App.emptyState("calendar", "No transactions this day");
       return;
     }
 
@@ -32,7 +32,7 @@ const Dashboard = (() => {
           <div class="swipe-content">
             <span class="row-ic" style="background:${c ? c.color : "#94a3b8"}">${c ? renderCatIcon(c.icon) : icon("other")}</span>
             <span style="flex:1;min-width:0">
-              <div class="row-title">${App.escapeHtml(c ? c.name : "Без категорії")}</div>
+              <div class="row-title">${App.escapeHtml(c ? c.name : "No category")}</div>
               ${t.note ? `<div class="row-sub">${App.escapeHtml(t.note)}</div>` : ""}
             </span>
             <span class="row-value" style="color:var(--${t.type}-text);font-weight:700">${amt}</span>
@@ -124,13 +124,13 @@ const Dashboard = (() => {
 
   async function deleteTransaction(id) {
     await Db.deleteTransaction(id);
-    App.toast("Видалено");
+    App.toast("Deleted");
     render();
   }
 
   async function render() {
     const { year, month } = App.state.dashboardDate;
-    document.getElementById("monthLabel").textContent = `${App.MONTHS_UK[month - 1]} ${year}`;
+    document.getElementById("monthLabel").textContent = `${App.MONTHS[month - 1]} ${year}`;
 
     const txs = await Db.getTransactionsByMonth(year, month);
     const expenses = txs.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
@@ -165,8 +165,8 @@ const Dashboard = (() => {
       .join("");
 
     document.getElementById("dashCards").innerHTML = `
-      <div class="stat-card expenses"><div class="t">Витрати</div><div class="v">${App.fmtMoney(expenses)}</div></div>
-      <div class="stat-card incomes"><div class="t">Доходи</div><div class="v">${App.fmtMoney(incomes)}</div></div>
+      <div class="stat-card expenses"><div class="t">Expenses</div><div class="v">${App.fmtMoney(expenses)}</div></div>
+      <div class="stat-card incomes"><div class="t">Incomes</div><div class="v">${App.fmtMoney(incomes)}</div></div>
       ${catCards}
     `;
 
@@ -178,7 +178,7 @@ const Dashboard = (() => {
     const days = Object.keys(byDay).sort((a, b) => (a < b ? 1 : -1));
     const dayListEl = document.getElementById("dayList");
     if (!days.length) {
-      dayListEl.innerHTML = App.emptyState("calendar", "Немає операцій за цей місяць");
+      dayListEl.innerHTML = App.emptyState("calendar", "No transactions this month");
     } else {
       dayListEl.innerHTML = days
         .map((iso) => {
@@ -189,7 +189,7 @@ const Dashboard = (() => {
           const selectedCls = iso === App.state.dashboardSelectedDay ? " selected" : "";
           return `<button class="day-row${selectedCls}" data-date="${iso}">
             <span class="dnum">${d.getDate()}</span>
-            <span class="dname">${App.DOW_FULL_UK[(d.getDay() + 6) % 7]}</span>
+            <span class="dname">${App.DOW_FULL[(d.getDay() + 6) % 7]}</span>
             <span class="dsum" style="color:var(--${cls}-text)">${sign}${App.fmtMoney(Math.abs(net)).replace(App.state.currency, "").trim()} ${App.state.currency}</span>
           </button>`;
         })
@@ -215,44 +215,54 @@ const Dashboard = (() => {
   }
 
   // Swipe left/right between the "Monthly Balance" and "Total Balance"
-  // hero pages via drag, snapping to whichever page is closer.
+  // hero pages via drag, snapping to whichever page is closer. Dragging past
+  // either end (page 0 or the last page) is rubber-banded rather than fully
+  // followed, so it never reveals blank space beyond the real pages — and
+  // the transition is a CSS class toggle (not an inline style race) so the
+  // snap-back always plays.
   function initHeroSwipe() {
     const swipe = document.getElementById("dashHeroSwipe");
     const dots = document.querySelectorAll("#heroDots span");
+    const PAGE_COUNT = swipe.children.length;
     let page = 0;
-    let startX = 0, dx = 0, dragging = false, width = 0;
+    let startX = 0, lastDx = 0, dragging = false, width = 0;
 
-    function setPage(p, animate) {
-      page = Math.max(0, Math.min(1, p));
-      swipe.classList.toggle("dragging", !animate);
-      swipe.style.transition = animate ? "transform .25s ease" : "none";
-      swipe.style.transform = `translateX(${-page * 100}%)`;
+    function apply(pct) {
+      swipe.style.transform = `translateX(${pct}%)`;
+    }
+    function setPage(p) {
+      page = Math.max(0, Math.min(PAGE_COUNT - 1, p));
+      apply(-page * 100);
       dots.forEach((d, i) => d.classList.toggle("active", i === page));
     }
 
     swipe.addEventListener("pointerdown", (e) => {
-      width = swipe.getBoundingClientRect().width;
+      width = swipe.getBoundingClientRect().width || 1;
       startX = e.clientX;
-      dx = 0;
+      lastDx = 0;
       dragging = true;
-      swipe.setPointerCapture(e.pointerId);
-      swipe.style.transition = "none";
+      swipe.classList.add("dragging");
+      try { swipe.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
     });
     swipe.addEventListener("pointermove", (e) => {
       if (!dragging) return;
-      dx = e.clientX - startX;
-      const pct = (-page * 100) + (dx / width) * 100;
-      swipe.style.transform = `translateX(${pct}%)`;
+      lastDx = e.clientX - startX;
+      let pct = -page * 100 + (lastDx / width) * 100;
+      const min = -(PAGE_COUNT - 1) * 100, max = 0;
+      if (pct > max) pct = max + (pct - max) * 0.3;
+      if (pct < min) pct = min + (pct - min) * 0.3;
+      apply(pct);
     });
     function finish() {
       if (!dragging) return;
       dragging = false;
-      if (Math.abs(dx) > width * 0.2) setPage(page + (dx < 0 ? 1 : -1), true);
-      else setPage(page, true);
+      swipe.classList.remove("dragging");
+      if (Math.abs(lastDx) > width * 0.18) setPage(page + (lastDx < 0 ? 1 : -1));
+      else setPage(page);
     }
     swipe.addEventListener("pointerup", finish);
     swipe.addEventListener("pointercancel", finish);
-    setPage(0, true);
+    setPage(0);
   }
 
   async function renderMonthOverlay() {
@@ -273,7 +283,7 @@ const Dashboard = (() => {
         const [y, m] = key.split("-").map(Number);
         const cls = key === curKey ? " current" : "";
         return `<button class="month-overlay-row${cls}" data-year="${y}" data-month="${m}">
-          <span class="m-name">${App.MONTHS_UK[m - 1].toUpperCase()} ${y}</span>
+          <span class="m-name">${App.MONTHS[m - 1].toUpperCase()} ${y}</span>
           <span class="m-exp">${App.fmtMoney(byMonth[key].expense).replace(App.state.currency, "").trim()}</span>
           <span class="m-inc">${App.fmtMoney(byMonth[key].income).replace(App.state.currency, "").trim()}</span>
         </button>`;

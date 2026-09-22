@@ -22,7 +22,7 @@ const Entry = (() => {
         })
         .join("") +
       `<button class="cat-chip more" data-more="1">
-        <span class="cat-ic">${icon("more")}</span><span>Ще</span>
+        <span class="cat-ic">${icon("more")}</span><span>More</span>
       </button>`;
     row.querySelectorAll(".cat-chip[data-cat]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -51,7 +51,7 @@ const Entry = (() => {
   function renderTypeToggle() {
     const type = App.state.entry.type;
     const title = document.getElementById("entryTypeTitle");
-    title.textContent = type === "expense" ? "Витрата" : "Дохід";
+    title.textContent = type === "expense" ? "Expense" : "Income";
     title.classList.toggle("expense", type === "expense");
     title.classList.toggle("income", type === "income");
     const confirmBtn = document.getElementById("confirmBtn");
@@ -71,7 +71,7 @@ const Entry = (() => {
   async function renderTodayTotal() {
     const txs = await Db.getTransactionsByDateRange(App.todayISO(), App.todayISO());
     const total = txs.filter((t) => t.type === App.state.entry.type).reduce((s, t) => s + t.amount, 0);
-    document.getElementById("todayTotal").textContent = `Сьогодні: ${App.fmtMoney(total).replace(App.state.currency, "").trim()}`;
+    document.getElementById("todayTotal").textContent = `Today: ${App.fmtMoney(total).replace(App.state.currency, "").trim()}`;
   }
 
   function render() {
@@ -124,13 +124,13 @@ const Entry = (() => {
 
   function renderCalendar() {
     const { year, month } = calView;
-    document.getElementById("calLabel").textContent = `${App.MONTHS_UK[month - 1]} ${year}`;
+    document.getElementById("calLabel").textContent = `${App.MONTHS[month - 1]} ${year}`;
     const first = new Date(year, month - 1, 1);
     const startOffset = (first.getDay() + 6) % 7; // Monday = 0
     const daysInMonth = new Date(year, month, 0).getDate();
     const todayStr = App.todayISO();
 
-    let cells = App.DOW_UK.map((d) => `<div class="dow">${d}</div>`).join("");
+    let cells = App.DOW.map((d) => `<div class="dow">${d}</div>`).join("");
     for (let i = 0; i < startOffset; i++) cells += `<div class="day muted"></div>`;
     for (let d = 1; d <= daysInMonth; d++) {
       const iso = `${year}-${String(month).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
@@ -203,8 +203,8 @@ const Entry = (() => {
 
     document.getElementById("confirmBtn").addEventListener("click", async () => {
       const amount = parseFloat(App.state.entry.amount);
-      if (!amount || amount <= 0) { App.toast("Введіть суму"); return; }
-      if (!App.state.entry.categoryId) { App.toast("Оберіть категорію"); return; }
+      if (!amount || amount <= 0) { App.toast("Enter an amount"); return; }
+      if (!App.state.entry.categoryId) { App.toast("Choose a category"); return; }
       await Db.addTransaction({
         type: App.state.entry.type,
         amount,
@@ -213,7 +213,7 @@ const Entry = (() => {
         date: App.state.entry.date,
         note: App.state.entry.note || "",
       });
-      App.toast("Додано");
+      App.toast("Added");
       App.state.entry.amount = "0";
       App.state.entry.note = "";
       App.state.entry.date = App.todayISO();

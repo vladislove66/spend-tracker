@@ -144,14 +144,14 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: calc(18px + var(--safe-t)) 20px 6px;
+  padding: calc(30px + var(--safe-t)) 20px 10px;
   touch-action: pan-y;
 }
 .entry-type-title {
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 30px;
+  font-size: 38px;
   font-weight: 400;
   padding: 6px 14px;
   transition: color .15s ease;
@@ -162,9 +162,9 @@ body {
 .category-row {
   display: flex;
   align-items: flex-start;
-  gap: 18px;
+  gap: 22px;
   overflow-x: auto;
-  padding: 4px 20px 18px;
+  padding: 6px 20px 26px;
   scrollbar-width: none;
 }
 .category-row::-webkit-scrollbar { display: none; }
@@ -173,17 +173,17 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
   background: none;
   border: none;
   font-family: inherit;
   color: var(--text-dim);
-  width: 60px;
+  width: 68px;
   transition: color .2s ease, transform .1s ease;
 }
 .cat-chip:active { transform: scale(0.95); }
 .cat-chip .cat-ic {
-  width: 30px; height: 30px;
+  width: 36px; height: 36px;
   display: flex; align-items: center; justify-content: center;
   color: var(--text-dim);
   transition: color .2s ease;
@@ -192,17 +192,17 @@ body {
 .category-row.expense .cat-chip.active .cat-ic { color: var(--expense); }
 .category-row.income .cat-chip.active,
 .category-row.income .cat-chip.active .cat-ic { color: var(--income-text); }
-.cat-chip span { font-size: 11px; text-align: center; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
+.cat-chip span { font-size: 12.5px; text-align: center; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 68px; }
 .cat-chip.more .cat-ic { color: var(--text-dim); }
 
 .amount-display {
   text-align: center;
-  padding: 10px 20px 20px;
+  padding: 16px 20px 32px;
   position: relative;
 }
 .amount-display .amt {
   display: inline-block;
-  font-size: 52px;
+  font-size: 68px;
   font-weight: 300;
   font-variant-numeric: tabular-nums;
 }
@@ -216,22 +216,22 @@ body {
 }
 .amount-display.expense .amt { color: var(--expense-text); }
 .amount-display.income .amt { color: var(--income-text); }
-.amount-display .cur { font-size: 16px; color: var(--text-dim); vertical-align: middle; margin-left: 4px; }
+.amount-display .cur { font-size: 19px; color: var(--text-dim); vertical-align: middle; margin-left: 6px; }
 
 .keypad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 2px;
+  gap: 4px;
   padding: 0 12px;
 }
 .keypad button {
   border: none;
   background: none;
   font-family: inherit;
-  font-size: 28px;
+  font-size: 34px;
   font-weight: 300;
   color: var(--text);
-  padding: 16px;
+  padding: 22px;
   border-radius: var(--radius-sm);
   transition: background-color .1s ease, transform .1s ease;
 }
@@ -240,19 +240,21 @@ body {
 .entry-actions {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 18px 20px 0;
-  min-height: 56px;
+  gap: 16px;
+  padding: 26px 22px 0;
+  min-height: 60px;
 }
 .entry-actions .icon-btn {
   flex: 0 0 auto;
   background: none;
   color: var(--text-dim);
+  width: 44px; height: 44px;
 }
+.entry-actions .icon-btn .icon { width: 26px; height: 26px; }
 .today-total {
   flex: 1;
   text-align: center;
-  font-size: 15px;
+  font-size: 17px;
   font-weight: 600;
 }
 .today-total.expense { color: var(--expense); }
@@ -261,9 +263,9 @@ body {
   flex: 1;
   border: none;
   border-radius: 999px;
-  padding: 14px;
+  padding: 16px;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 17px;
   font-weight: 700;
   color: #fff;
   display: flex; align-items: center; justify-content: center; gap: 8px;
@@ -446,13 +448,13 @@ body {
   display: flex;
   overflow: hidden;
   touch-action: pan-y;
+  transition: transform .25s cubic-bezier(.22,.68,0,1);
 }
-.dash-hero-swipe.dragging .dash-hero-page { transition: none; }
+.dash-hero-swipe.dragging { transition: none; }
 .dash-hero-page {
   flex: 0 0 100%;
   text-align: center;
   padding-top: 12px;
-  transition: none;
 }
 .hero-value { font-size: 38px; font-weight: 300; font-variant-numeric: tabular-nums; }
 .hero-label { font-size: 13px; opacity: .85; margin-top: 4px; }

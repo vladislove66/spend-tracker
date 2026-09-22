@@ -1,7 +1,7 @@
 const Stats = (() => {
   async function render() {
     const { year, month } = App.state.statsDate;
-    document.getElementById("statsMonthLabel").textContent = `${App.MONTHS_UK[month - 1]} ${year}`;
+    document.getElementById("statsMonthLabel").textContent = `${App.MONTHS[month - 1]} ${year}`;
 
     // Fetch the whole 6-month trend window in a single indexed range query
     // instead of re-scanning the transactions store once per month.
@@ -36,7 +36,7 @@ const Stats = (() => {
       const total = rangeTxs
         .filter((t) => t.type === "expense" && t.date.startsWith(prefix))
         .reduce((s, t) => s + t.amount, 0);
-      trend.push({ label: App.MONTHS_UK[m - 1].slice(0, 3), value: total });
+      trend.push({ label: App.MONTHS[m - 1].slice(0, 3), value: total });
     }
     document.getElementById("trendChart").innerHTML = Charts.bars(trend);
   }
