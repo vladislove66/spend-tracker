@@ -162,11 +162,17 @@ body {
 .category-row {
   display: flex;
   align-items: flex-start;
-  gap: 22px;
+  justify-content: flex-start;
+  gap: 18px;
   overflow-x: auto;
   padding: 6px 20px 26px;
   scrollbar-width: none;
 }
+/* Center only applies once we know (via JS) the row's content is narrower
+   than the viewport — justify-content:center on an OVERFLOWING scrollable
+   flex row makes browsers start the scroll position at the middle of the
+   content, leaving the first items unreachable by scrolling back to them. */
+.category-row.fits { justify-content: center; }
 .category-row::-webkit-scrollbar { display: none; }
 .cat-chip {
   flex: 0 0 auto;
@@ -178,7 +184,7 @@ body {
   border: none;
   font-family: inherit;
   color: var(--text-dim);
-  width: 68px;
+  width: 74px;
   transition: color .2s ease, transform .1s ease;
 }
 .cat-chip:active { transform: scale(0.95); }
@@ -192,7 +198,16 @@ body {
 .category-row.expense .cat-chip.active .cat-ic { color: var(--expense); }
 .category-row.income .cat-chip.active,
 .category-row.income .cat-chip.active .cat-ic { color: var(--income-text); }
-.cat-chip span { font-size: 12.5px; text-align: center; line-height: 1.25; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 68px; }
+.cat-chip span {
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.25;
+  max-width: 74px;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 .cat-chip.more .cat-ic { color: var(--text-dim); }
 
 .amount-display {
@@ -446,13 +461,16 @@ body {
 .hero-month .icon { width: 13px; height: 13px; opacity: .85; }
 .dash-hero-swipe {
   display: flex;
-  overflow: hidden;
-  touch-action: pan-y;
-  transition: transform .25s cubic-bezier(.22,.68,0,1);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
 }
-.dash-hero-swipe.dragging { transition: none; }
+.dash-hero-swipe::-webkit-scrollbar { display: none; }
 .dash-hero-page {
   flex: 0 0 100%;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   text-align: center;
   padding-top: 12px;
 }
@@ -501,11 +519,16 @@ body {
   padding: 0 3px;
 }
 .stat-card {
+  border: none;
+  font-family: inherit;
+  text-align: left;
   padding: 14px 16px;
   min-height: 130px;
   display: flex; flex-direction: column; justify-content: space-between;
   animation: fadeInUp .3s ease both;
+  transition: transform .1s ease;
 }
+.stat-card:active { transform: scale(0.97); }
 .stat-card.expenses { background: var(--expense); color: #fff; }
 .stat-card.incomes { background: var(--income); color: #fff; }
 .stat-card .t { font-size: 13px; font-weight: 600; }

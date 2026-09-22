@@ -31,6 +31,9 @@ const Entry = (() => {
       });
     });
     row.querySelector(".cat-chip.more").addEventListener("click", () => App.showTab("categories"));
+
+    row.classList.remove("fits");
+    if (row.scrollWidth <= row.clientWidth) row.classList.add("fits");
   }
 
   function renderAmount() {
@@ -45,7 +48,10 @@ const Entry = (() => {
     const hasAmount = parseFloat(App.state.entry.amount) > 0;
     document.getElementById("todayTotal").style.display = hasAmount ? "none" : "";
     document.getElementById("confirmBtn").style.display = hasAmount ? "" : "none";
-    document.getElementById("noteBtn").style.display = hasAmount ? "" : "none";
+    // visibility (not display) keeps this icon's slot reserved so the
+    // stats icon on the left doesn't out-balance the row and skew the
+    // centered text toward the right when there's nothing to show here.
+    document.getElementById("noteBtn").style.visibility = hasAmount ? "" : "hidden";
   }
 
   function renderTypeToggle() {

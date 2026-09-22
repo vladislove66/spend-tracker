@@ -165,10 +165,13 @@ const Dashboard = (() => {
       .join("");
 
     document.getElementById("dashCards").innerHTML = `
-      <div class="stat-card expenses"><div class="t">Expenses</div><div class="v">${App.fmtMoney(expenses)}</div></div>
-      <div class="stat-card incomes"><div class="t">Incomes</div><div class="v">${App.fmtMoney(incomes)}</div></div>
+      <button class="stat-card expenses" id="expensesCard"><div class="t">Expenses</div><div class="v">${App.fmtMoney(expenses)}</div></button>
+      <button class="stat-card incomes" id="incomesCard"><div class="t">Incomes</div><div class="v">${App.fmtMoney(incomes)}</div></button>
       ${catCards}
     `;
+    const scrollToByDay = () => document.getElementById("byDayLabel").scrollIntoView({ behavior: "smooth", block: "start" });
+    document.getElementById("expensesCard").addEventListener("click", scrollToByDay);
+    document.getElementById("incomesCard").addEventListener("click", scrollToByDay);
 
     const byDay = {};
     txs.forEach((t) => {
@@ -214,55 +217,25 @@ const Dashboard = (() => {
     renderDayDetail(txs.filter((t) => t.date === selected), selected);
   }
 
-  // Swipe left/right between the "Monthly Balance" and "Total Balance"
-  // hero pages via drag, snapping to whichever page is closer. Dragging past
-  // either end (page 0 or the last page) is rubber-banded rather than fully
-  // followed, so it never reveals blank space beyond the real pages — and
-  // the transition is a CSS class toggle (not an inline style race) so the
-  // snap-back always plays.
+  // Swipe left/right between the "Monthly Balance" and "Total Balance" hero
+  // pages using native scroll-snap rather than custom pointer-drag tracking.
+  // A hand-rolled pointer/transform implementation could get its drag state
+  // stuck on real iOS Safari touch (setPointerCapture/pointercancel quirks),
+  // leaving the swipe track transformed off-screen with no way back. Native
+  // scroll snapping can't get stuck that way — the browser owns the gesture.
   function initHeroSwipe() {
     const swipe = document.getElementById("dashHeroSwipe");
     const dots = document.querySelectorAll("#heroDots span");
-    const PAGE_COUNT = swipe.children.length;
-    let page = 0;
-    let startX = 0, lastDx = 0, dragging = false, width = 0;
-
-    function apply(pct) {
-      swipe.style.transform = `translateX(${pct}%)`;
-    }
-    function setPage(p) {
-      page = Math.max(0, Math.min(PAGE_COUNT - 1, p));
-      apply(-page * 100);
+    let scrollTimer = null;
+    function updateDots() {
+      const page = Math.round(swipe.scrollLeft / (swipe.clientWidth || 1));
       dots.forEach((d, i) => d.classList.toggle("active", i === page));
     }
-
-    swipe.addEventListener("pointerdown", (e) => {
-      width = swipe.getBoundingClientRect().width || 1;
-      startX = e.clientX;
-      lastDx = 0;
-      dragging = true;
-      swipe.classList.add("dragging");
-      try { swipe.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    swipe.addEventListener("scroll", () => {
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(updateDots, 60);
     });
-    swipe.addEventListener("pointermove", (e) => {
-      if (!dragging) return;
-      lastDx = e.clientX - startX;
-      let pct = -page * 100 + (lastDx / width) * 100;
-      const min = -(PAGE_COUNT - 1) * 100, max = 0;
-      if (pct > max) pct = max + (pct - max) * 0.3;
-      if (pct < min) pct = min + (pct - min) * 0.3;
-      apply(pct);
-    });
-    function finish() {
-      if (!dragging) return;
-      dragging = false;
-      swipe.classList.remove("dragging");
-      if (Math.abs(lastDx) > width * 0.18) setPage(page + (lastDx < 0 ? 1 : -1));
-      else setPage(page);
-    }
-    swipe.addEventListener("pointerup", finish);
-    swipe.addEventListener("pointercancel", finish);
-    setPage(0);
+    updateDots();
   }
 
   async function renderMonthOverlay() {
