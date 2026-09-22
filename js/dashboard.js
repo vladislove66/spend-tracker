@@ -169,9 +169,8 @@ const Dashboard = (() => {
       <button class="stat-card incomes" id="incomesCard"><div class="t">Incomes</div><div class="v">${App.fmtMoney(incomes)}</div></button>
       ${catCards}
     `;
-    const scrollToByDay = () => document.getElementById("byDayLabel").scrollIntoView({ behavior: "smooth", block: "start" });
-    document.getElementById("expensesCard").addEventListener("click", scrollToByDay);
-    document.getElementById("incomesCard").addEventListener("click", scrollToByDay);
+    document.getElementById("expensesCard").addEventListener("click", () => openDrill("expense"));
+    document.getElementById("incomesCard").addEventListener("click", () => openDrill("income"));
 
     const byDay = {};
     txs.forEach((t) => {
@@ -280,12 +279,78 @@ const Dashboard = (() => {
     document.getElementById("monthOverlay").classList.remove("open");
   }
 
+  // ---- Drill screen: "By days" / "By groups" breakdown for one type ----
+  let drillType = "expense";
+  let drillTab = "days";
+
+  async function renderDrillList() {
+    const { year, month } = App.state.dashboardDate;
+    const txs = (await Db.getTransactionsByMonth(year, month)).filter((t) => t.type === drillType);
+    const listEl = document.getElementById("drillList");
+
+    if (drillTab === "days") {
+      const byDay = {};
+      txs.forEach((t) => { byDay[t.date] = (byDay[t.date] || 0) + t.amount; });
+      const days = Object.keys(byDay).sort((a, b) => (a < b ? 1 : -1));
+      if (!days.length) { listEl.innerHTML = App.emptyState("calendar", "No transactions this month"); return; }
+      listEl.innerHTML = days
+        .map((iso) => {
+          const d = new Date(iso + "T00:00:00");
+          return `<div class="drill-row">
+            <span class="d-num">${d.getDate()}</span>
+            <span class="d-name">${App.DOW_FULL[(d.getDay() + 6) % 7]}</span>
+            <span class="d-amt">${App.fmtMoney(byDay[iso])}</span>
+            <span class="chev">${icon("chevronRight")}</span>
+          </div>`;
+        })
+        .join("");
+    } else {
+      const byCat = {};
+      txs.forEach((t) => { byCat[t.categoryId] = (byCat[t.categoryId] || 0) + t.amount; });
+      const ids = Object.keys(byCat).sort((a, b) => byCat[b] - byCat[a]);
+      if (!ids.length) { listEl.innerHTML = App.emptyState("calendar", "No transactions this month"); return; }
+      listEl.innerHTML = ids
+        .map((id) => {
+          const c = App.catById(id);
+          return `<div class="drill-row">
+            <span class="d-ic">${c ? renderCatIcon(c.icon) : icon("other")}</span>
+            <span class="d-name">${App.escapeHtml(c ? c.name : "No category")}</span>
+            <span class="d-amt">${App.fmtMoney(byCat[id])}</span>
+            <span class="chev">${icon("chevronRight")}</span>
+          </div>`;
+        })
+        .join("");
+    }
+  }
+
+  function openDrill(type) {
+    drillType = type;
+    drillTab = "days";
+    const { year, month } = App.state.dashboardDate;
+    document.getElementById("drillTitle").textContent = `${App.MONTHS[month - 1]} ${year}`;
+    document.getElementById("drillOverlay").style.setProperty("--drill-accent", `var(--${type === "income" ? "income-text" : "expense"})`);
+    document.querySelectorAll("#drillTabs button").forEach((b) => b.classList.toggle("active", b.dataset.drilltab === "days"));
+    renderDrillList();
+    document.getElementById("drillOverlay").classList.add("open");
+  }
+  function closeDrill() {
+    document.getElementById("drillOverlay").classList.remove("open");
+  }
+
   function init() {
     initHeroSwipe();
     document.getElementById("dashGridBtn").addEventListener("click", () => App.showTab("entry"));
     document.getElementById("dashSettingsBtn").addEventListener("click", () => App.showTab("settings"));
     document.getElementById("monthPickerBtn").addEventListener("click", openMonthOverlay);
     document.getElementById("monthOverlayBackdrop").addEventListener("click", closeMonthOverlay);
+    document.getElementById("drillBackBtn").addEventListener("click", closeDrill);
+    document.querySelectorAll("#drillTabs button").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        drillTab = btn.dataset.drilltab;
+        document.querySelectorAll("#drillTabs button").forEach((b) => b.classList.toggle("active", b === btn));
+        renderDrillList();
+      });
+    });
     initSwipeToDelete(document.getElementById("dayDetailList"), deleteTransaction);
   }
 
