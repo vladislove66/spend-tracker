@@ -137,8 +137,13 @@ const Dashboard = (() => {
     const incomes = txs.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
     const balance = incomes - expenses;
 
-    const balanceEl = document.getElementById("monthBalance");
-    balanceEl.textContent = App.fmtMoney(balance);
+    document.getElementById("monthBalance").textContent = App.fmtMoney(balance);
+
+    const allTxs = await Db.getAllTransactions();
+    const startBalance = await Db.getSetting("startBalance", 0);
+    const totalBalance =
+      startBalance + allTxs.reduce((s, t) => s + (t.type === "income" ? t.amount : -t.amount), 0);
+    document.getElementById("totalBalance").textContent = App.fmtMoney(totalBalance);
 
     const catTotals = {};
     txs.forEach((t) => {
@@ -152,8 +157,8 @@ const Dashboard = (() => {
         const c = App.catById(id);
         if (!c) return "";
         return `<div class="cat-card">
-          <span class="cat-ic" style="background:${c.color}">${renderCatIcon(c.icon)}</span>
           <div class="name">${App.escapeHtml(c.name)}</div>
+          <span class="cat-ic">${renderCatIcon(c.icon)}</span>
           <div class="amt">${App.fmtMoney(v)}</div>
         </div>`;
       })
@@ -209,8 +214,95 @@ const Dashboard = (() => {
     renderDayDetail(txs.filter((t) => t.date === selected), selected);
   }
 
+  // Swipe left/right between the "Monthly Balance" and "Total Balance"
+  // hero pages via drag, snapping to whichever page is closer.
+  function initHeroSwipe() {
+    const swipe = document.getElementById("dashHeroSwipe");
+    const dots = document.querySelectorAll("#heroDots span");
+    let page = 0;
+    let startX = 0, dx = 0, dragging = false, width = 0;
+
+    function setPage(p, animate) {
+      page = Math.max(0, Math.min(1, p));
+      swipe.classList.toggle("dragging", !animate);
+      swipe.style.transition = animate ? "transform .25s ease" : "none";
+      swipe.style.transform = `translateX(${-page * 100}%)`;
+      dots.forEach((d, i) => d.classList.toggle("active", i === page));
+    }
+
+    swipe.addEventListener("pointerdown", (e) => {
+      width = swipe.getBoundingClientRect().width;
+      startX = e.clientX;
+      dx = 0;
+      dragging = true;
+      swipe.setPointerCapture(e.pointerId);
+      swipe.style.transition = "none";
+    });
+    swipe.addEventListener("pointermove", (e) => {
+      if (!dragging) return;
+      dx = e.clientX - startX;
+      const pct = (-page * 100) + (dx / width) * 100;
+      swipe.style.transform = `translateX(${pct}%)`;
+    });
+    function finish() {
+      if (!dragging) return;
+      dragging = false;
+      if (Math.abs(dx) > width * 0.2) setPage(page + (dx < 0 ? 1 : -1), true);
+      else setPage(page, true);
+    }
+    swipe.addEventListener("pointerup", finish);
+    swipe.addEventListener("pointercancel", finish);
+    setPage(0, true);
+  }
+
+  async function renderMonthOverlay() {
+    const listEl = document.getElementById("monthOverlayList");
+    const txs = await Db.getAllTransactions();
+    const { year: curY, month: curM } = App.state.dashboardDate;
+    const byMonth = {};
+    txs.forEach((t) => {
+      const key = t.date.slice(0, 7);
+      if (!byMonth[key]) byMonth[key] = { expense: 0, income: 0 };
+      byMonth[key][t.type] += t.amount;
+    });
+    const curKey = `${curY}-${String(curM).padStart(2, "0")}`;
+    if (!byMonth[curKey]) byMonth[curKey] = { expense: 0, income: 0 };
+    const keys = Object.keys(byMonth).sort((a, b) => (a < b ? 1 : -1));
+    listEl.innerHTML = keys
+      .map((key) => {
+        const [y, m] = key.split("-").map(Number);
+        const cls = key === curKey ? " current" : "";
+        return `<button class="month-overlay-row${cls}" data-year="${y}" data-month="${m}">
+          <span class="m-name">${App.MONTHS_UK[m - 1].toUpperCase()} ${y}</span>
+          <span class="m-exp">${App.fmtMoney(byMonth[key].expense).replace(App.state.currency, "").trim()}</span>
+          <span class="m-inc">${App.fmtMoney(byMonth[key].income).replace(App.state.currency, "").trim()}</span>
+        </button>`;
+      })
+      .join("");
+    listEl.querySelectorAll(".month-overlay-row").forEach((row) => {
+      row.addEventListener("click", () => {
+        App.state.dashboardDate = { year: Number(row.dataset.year), month: Number(row.dataset.month) };
+        App.state.dashboardSelectedDay = null;
+        closeMonthOverlay();
+        render();
+      });
+    });
+  }
+
+  function openMonthOverlay() {
+    renderMonthOverlay();
+    document.getElementById("monthOverlay").classList.add("open");
+  }
+  function closeMonthOverlay() {
+    document.getElementById("monthOverlay").classList.remove("open");
+  }
+
   function init() {
-    App.bindMonthNav("prevMonth", "nextMonth", "dashboardDate", render);
+    initHeroSwipe();
+    document.getElementById("dashGridBtn").addEventListener("click", () => App.showTab("entry"));
+    document.getElementById("dashSettingsBtn").addEventListener("click", () => App.showTab("settings"));
+    document.getElementById("monthPickerBtn").addEventListener("click", openMonthOverlay);
+    document.getElementById("monthOverlayBackdrop").addEventListener("click", closeMonthOverlay);
     initSwipeToDelete(document.getElementById("dayDetailList"), deleteTransaction);
   }
 

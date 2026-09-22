@@ -1,5 +1,16 @@
 const Categories = (() => {
-  const ICON_CHOICES = ["food","cart","car","fuel","drink","health","clothes","phone","subscriptions","travel","home","gift","book","paw","income","sport","beauty","kids","tech","wallet","other"];
+  const ICON_CHOICES = [
+    "food","drink","cart","fuel","coffee","pacifier","diaper","music",
+    "wallet","gift","bag","health","ski","sport","stroller","travel",
+    "diamond","bus","dental","bike","clothes","art","heels","call",
+    "home","dinner","tire","camera","beer","tie","palm","ship",
+    "goggles","clock","heart","cherries","cigarette","repair","car","piechart",
+    "binoculars","bird","star","lips","briefcase","education","paw","medal",
+    "book","key","card","tools","leaf","moneybag","woman","cow",
+    "wifi","headphones","gamepad","fishing","dollar","man","people","percent",
+    "factory","badge",
+    "phone","subscriptions","income","beauty","kids","tech","other",
+  ];
   const COLOR_CHOICES = ["#f97316","#0ea5e9","#64748b","#a16207","#d946ef","#ef4444","#14b8a6","#6366f1","#84cc16","#0891b2","#94a3b8","#22c55e","#eab308","#ec4899","#8b5cf6"];
 
   let editing = { id: null, type: "expense", icon: "other", emoji: "", color: COLOR_CHOICES[0] };
@@ -8,25 +19,24 @@ const Categories = (() => {
     const cats = await Db.getCategories();
     App.state.categories = cats;
     const list = document.getElementById("categoriesList");
-    if (!cats.length) {
-      list.innerHTML = App.emptyState("wallet", "Немає категорій");
-      return;
-    }
-    list.innerHTML = cats
-      .map(
-        (c) => `<button class="list-row" data-id="${c.id}">
-          <span class="row-ic" style="background:${c.color}">${renderCatIcon(c.icon)}</span>
-          <span style="flex:1">
-            <div class="row-title">${App.escapeHtml(c.name)}</div>
-            <div class="row-sub">${c.type === "income" ? "Дохід" : "Витрата"}</div>
-          </span>
-          <span class="drag-handle">${icon("drag")}</span>
-        </button>`
-      )
-      .join("");
-    list.querySelectorAll(".list-row").forEach((row) => {
+    list.innerHTML =
+      cats
+        .map(
+          (c) => `<button class="list-row" data-id="${c.id}">
+            <span class="row-ic" style="background:${c.color}">${renderCatIcon(c.icon)}</span>
+            <span style="flex:1">
+              <div class="row-title">${App.escapeHtml(c.name)}</div>
+              <div class="row-sub">${c.type === "income" ? "Дохід" : "Витрата"}</div>
+            </span>
+            <span class="drag-handle">${icon("drag")}</span>
+          </button>`
+        )
+        .join("") +
+      `<button class="list-row add-row" id="addCategoryRow">+ Додати категорію</button>`;
+    list.querySelectorAll(".list-row[data-id]").forEach((row) => {
       row.addEventListener("click", () => openEditor(cats.find((c) => c.id === row.dataset.id)));
     });
+    document.getElementById("addCategoryRow").addEventListener("click", () => openEditor(null));
   }
 
   // Drag-to-reorder via a dedicated handle (keeps tapping the rest of the
@@ -37,7 +47,7 @@ const Categories = (() => {
     let suppressClick = false, suppressTimer = null;
 
     function rows() {
-      return Array.from(list.querySelectorAll(".list-row"));
+      return Array.from(list.querySelectorAll(".list-row[data-id]"));
     }
 
     list.addEventListener("pointerdown", (e) => {
@@ -182,7 +192,6 @@ const Categories = (() => {
 
   function init() {
     initReorder();
-    document.getElementById("addCategoryBtn").addEventListener("click", () => openEditor(null));
 
     document.querySelectorAll("#categoryTypeToggle button").forEach((btn) => {
       btn.addEventListener("click", () => {

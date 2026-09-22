@@ -9,8 +9,8 @@ const DEFAULT_CATEGORIES = [
   { name: "Підписки", icon: "subscriptions", color: "#6366f1", type: "expense" },
   { name: "Житло", icon: "home", color: "#84cc16", type: "expense" },
   { name: "Подорожі", icon: "travel", color: "#0891b2", type: "expense" },
-  { name: "Інше", icon: "other", color: "#94a3b8", type: "expense" },
-  { name: "Дохід", icon: "income", color: "#22c55e", type: "income" },
+  { name: "Інше", icon: "tools", color: "#94a3b8", type: "expense" },
+  { name: "Дохід", icon: "moneybag", color: "#22c55e", type: "income" },
 ];
 
 const Db = (() => {

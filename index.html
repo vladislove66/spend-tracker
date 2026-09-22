@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1" />
 <title>Витрати</title>
-<meta name="theme-color" content="#4f46e5" />
+<meta name="theme-color" content="#0fb9f7" />
 <link rel="manifest" href="manifest.json" />
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png" />
 <link rel="icon" href="icons/favicon-32.png" />
@@ -20,14 +20,11 @@
 
   <!-- ============ ENTRY ============ -->
   <section id="screen-entry" class="screen active">
-    <div class="page-header"><h1>Витрати</h1></div>
-
-    <div class="type-toggle" id="entryTypeToggle">
-      <button class="active expense" data-type="expense">Витрата</button>
-      <button data-type="income">Дохід</button>
+    <div class="entry-header" id="entryHeader">
+      <button class="entry-type-title expense" id="entryTypeTitle" data-type="expense">Витрата</button>
     </div>
 
-    <div class="category-row" id="categoryRow"></div>
+    <div class="category-row expense" id="categoryRow"></div>
 
     <div class="amount-display expense" id="amountDisplay">
       <span class="amt" id="amountValue">0</span><span class="cur" id="amountCur">UAH</span>
@@ -41,26 +38,34 @@
     </div>
 
     <div class="entry-actions">
-      <button class="icon-btn note-indicator" id="noteBtn" data-icon="note"></button>
-      <button class="confirm-btn expense" id="confirmBtn"><span data-icon="check"></span>Зберегти</button>
+      <button class="icon-btn" id="statsShortcutBtn" data-icon="navStats"></button>
+      <span class="today-total expense" id="todayTotal">Сьогодні: 0</span>
+      <button class="confirm-btn expense" id="confirmBtn" style="display:none"><span data-icon="check"></span></button>
+      <button class="icon-btn note-indicator" id="noteBtn" data-icon="comment" style="display:none"></button>
     </div>
   </section>
 
   <!-- ============ DASHBOARD ============ -->
   <section id="screen-dashboard" class="screen">
-    <div class="page-header">
-      <h1>Дашборд</h1>
-    </div>
-
-    <div class="month-picker">
-      <button id="prevMonth" data-icon="chevronLeft"></button>
-      <span id="monthLabel">Липень 2026</span>
-      <button id="nextMonth" data-icon="chevronRight"></button>
-    </div>
-
-    <div class="balance-card">
-      <div class="label">Баланс за місяць</div>
-      <div class="value" id="monthBalance">0 UAH</div>
+    <div class="dash-hero">
+      <div class="dash-hero-top">
+        <button class="hero-icon-btn" id="dashGridBtn" data-icon="grid9"></button>
+        <button class="hero-month" id="monthPickerBtn">
+          <span id="monthLabel">Липень 2026</span><span data-icon="chevronDown"></span>
+        </button>
+        <button class="hero-icon-btn" id="dashSettingsBtn" data-icon="navSettings"></button>
+      </div>
+      <div class="dash-hero-swipe" id="dashHeroSwipe">
+        <div class="dash-hero-page">
+          <div class="hero-value" id="monthBalance">0 UAH</div>
+          <div class="hero-label">Баланс за місяць</div>
+        </div>
+        <div class="dash-hero-page">
+          <div class="hero-value" id="totalBalance">0 UAH</div>
+          <div class="hero-label">Загальний баланс</div>
+        </div>
+      </div>
+      <div class="hero-dots" id="heroDots"><span class="active"></span><span></span></div>
     </div>
 
     <div class="card-grid" id="dashCards"></div>
@@ -70,13 +75,17 @@
 
     <div class="section-label" id="dayDetailLabel">Сьогодні</div>
     <div class="day-detail-list" id="dayDetailList"></div>
+
+    <div class="month-overlay" id="monthOverlay">
+      <div class="month-overlay-backdrop" id="monthOverlayBackdrop"></div>
+      <div class="month-overlay-sheet" id="monthOverlayList"></div>
+    </div>
   </section>
 
   <!-- ============ CATEGORIES ============ -->
   <section id="screen-categories" class="screen">
     <div class="page-header"><h1>Категорії</h1></div>
     <div class="list" id="categoriesList"></div>
-    <button class="fab" id="addCategoryBtn"><span data-icon="plus"></span>Додати категорію</button>
   </section>
 
   <!-- ============ STATS ============ -->
@@ -139,7 +148,7 @@
         <div class="row-title">Експортувати зараз</div>
       </button>
       <button class="list-row" id="importBtn">
-        <div class="row-ic" style="background:#0ea5e9" data-icon="upload"></div>
+        <div class="row-ic" style="background:#06b6d4" data-icon="upload"></div>
         <div class="row-title">Імпортувати з файлу</div>
       </button>
       <input type="file" id="importFile" accept="application/json" style="display:none" />
@@ -155,8 +164,8 @@
     <div class="section-label">Дані</div>
     <div class="list">
       <button class="list-row" id="clearDataBtn">
-        <div class="row-ic" style="background:#ef4444" data-icon="trash"></div>
-        <div class="row-title" style="color:var(--expense)">Очистити всі дані</div>
+        <div class="row-ic" style="background:#3a3a3c" data-icon="trash"></div>
+        <div class="row-title">Очистити всі дані</div>
       </button>
     </div>
   </section>

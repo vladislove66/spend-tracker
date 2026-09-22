@@ -10,20 +10,27 @@ const Entry = (() => {
     const cats = categoriesForType(App.state.entry.type);
     const stillExists = cats.some((c) => c.id === App.state.entry.categoryId);
     if (!stillExists) App.state.entry.categoryId = cats.length ? cats[0].id : null;
-    row.innerHTML = cats
-      .map((c) => {
-        const active = c.id === App.state.entry.categoryId;
-        return `<button class="cat-chip${active ? " active" : ""}" style="--cc:${c.color}" data-cat="${c.id}">
-          <span class="cat-ic">${renderCatIcon(c.icon)}</span><span>${App.escapeHtml(c.name)}</span>
-        </button>`;
-      })
-      .join("");
-    row.querySelectorAll(".cat-chip").forEach((btn) => {
+    row.classList.toggle("expense", App.state.entry.type === "expense");
+    row.classList.toggle("income", App.state.entry.type === "income");
+    row.innerHTML =
+      cats
+        .map((c) => {
+          const active = c.id === App.state.entry.categoryId;
+          return `<button class="cat-chip${active ? " active" : ""}" data-cat="${c.id}">
+            <span class="cat-ic">${renderCatIcon(c.icon)}</span><span>${App.escapeHtml(c.name)}</span>
+          </button>`;
+        })
+        .join("") +
+      `<button class="cat-chip more" data-more="1">
+        <span class="cat-ic">${icon("more")}</span><span>Ще</span>
+      </button>`;
+    row.querySelectorAll(".cat-chip[data-cat]").forEach((btn) => {
       btn.addEventListener("click", () => {
         App.state.entry.categoryId = btn.dataset.cat;
         renderCategoryRow();
       });
     });
+    row.querySelector(".cat-chip.more").addEventListener("click", () => App.showTab("categories"));
   }
 
   function renderAmount() {
@@ -34,29 +41,37 @@ const Entry = (() => {
     cur.textContent = App.state.currency;
     disp.classList.toggle("expense", App.state.entry.type === "expense");
     disp.classList.toggle("income", App.state.entry.type === "income");
+
+    const hasAmount = parseFloat(App.state.entry.amount) > 0;
+    document.getElementById("todayTotal").style.display = hasAmount ? "none" : "";
+    document.getElementById("confirmBtn").style.display = hasAmount ? "" : "none";
+    document.getElementById("noteBtn").style.display = hasAmount ? "" : "none";
   }
 
   function renderTypeToggle() {
-    document.querySelectorAll("#entryTypeToggle button").forEach((b) => {
-      b.classList.toggle("active", b.dataset.type === App.state.entry.type);
-      b.classList.toggle("expense", b.dataset.type === "expense");
-      b.classList.toggle("income", b.dataset.type === "income");
-    });
+    const type = App.state.entry.type;
+    const title = document.getElementById("entryTypeTitle");
+    title.textContent = type === "expense" ? "Витрата" : "Дохід";
+    title.classList.toggle("expense", type === "expense");
+    title.classList.toggle("income", type === "income");
     const confirmBtn = document.getElementById("confirmBtn");
-    confirmBtn.classList.toggle("expense", App.state.entry.type === "expense");
-    confirmBtn.classList.toggle("income", App.state.entry.type === "income");
+    confirmBtn.classList.toggle("expense", type === "expense");
+    confirmBtn.classList.toggle("income", type === "income");
+    document.getElementById("todayTotal").classList.toggle("expense", type === "expense");
+    document.getElementById("todayTotal").classList.toggle("income", type === "income");
   }
 
   function renderNoteIndicator() {
     const btn = document.getElementById("noteBtn");
     const hasNote = App.state.entry.note && App.state.entry.note.trim().length > 0;
     const isOther = App.state.entry.date !== App.todayISO();
-    let dot = btn.querySelector(".dot");
-    if (hasNote || isOther) {
-      if (!dot) btn.insertAdjacentHTML("beforeend", '<span class="dot"></span>');
-    } else if (dot) {
-      dot.remove();
-    }
+    btn.classList.toggle("has-note", Boolean(hasNote || isOther));
+  }
+
+  async function renderTodayTotal() {
+    const txs = await Db.getTransactionsByDateRange(App.todayISO(), App.todayISO());
+    const total = txs.filter((t) => t.type === App.state.entry.type).reduce((s, t) => s + t.amount, 0);
+    document.getElementById("todayTotal").textContent = `Сьогодні: ${App.fmtMoney(total).replace(App.state.currency, "").trim()}`;
   }
 
   function render() {
@@ -64,6 +79,7 @@ const Entry = (() => {
     renderCategoryRow();
     renderAmount();
     renderNoteIndicator();
+    renderTodayTotal();
   }
 
   function onKey(k) {
@@ -132,14 +148,34 @@ const Entry = (() => {
     });
   }
 
-  function init() {
-    document.querySelectorAll("#entryTypeToggle button").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        App.state.entry.type = btn.dataset.type;
-        App.state.entry.categoryId = null;
-        render();
-      });
+  function toggleType() {
+    App.state.entry.type = App.state.entry.type === "expense" ? "income" : "expense";
+    App.state.entry.categoryId = null;
+    render();
+  }
+
+  // Swipe left/right on the header/category area switches Expense <-> Income,
+  // mirroring the original app (which has no visible toggle control there).
+  function initSwipeType(el) {
+    let startX = 0, startY = 0, tracking = false;
+    el.addEventListener("pointerdown", (e) => {
+      startX = e.clientX; startY = e.clientY; tracking = true;
     });
+    el.addEventListener("pointerup", (e) => {
+      if (!tracking) return;
+      tracking = false;
+      const dx = e.clientX - startX, dy = e.clientY - startY;
+      if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy) * 1.5) toggleType();
+    });
+    el.addEventListener("pointercancel", () => { tracking = false; });
+  }
+
+  function init() {
+    document.getElementById("entryTypeTitle").addEventListener("click", toggleType);
+    initSwipeType(document.getElementById("entryHeader"));
+    initSwipeType(document.getElementById("amountDisplay"));
+
+    document.getElementById("statsShortcutBtn").addEventListener("click", () => App.showTab("stats"));
 
     document.getElementById("keypad").addEventListener("click", (e) => {
       const btn = e.target.closest("button");
